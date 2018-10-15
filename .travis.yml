@@ -6,9 +6,20 @@ services:
 - mysql
 env:
 - DJANGO=1.9.5 DB=mysql
+branchs:
+  only:
+  - master
 before_install:
-- openssl aes-256-cbc -K $encrypted_80add9e7e319_key -iv $encrypted_80add9e7e319_iv -in configs.json.enc -out configs.json -d
+- openssl aes-256-cbc -K $encrypted_e46ca8364d31_key -iv $encrypted_e46ca8364d31_iv
+  -in id_rsa.enc -out ~\/.ssh/id_rsa -d
+- openssl aes-256-cbc -K $encrypted_80add9e7e319_key -iv $encrypted_80add9e7e319_iv
+  -in configs.json.enc -out configs.json -d
 install:
 - pip install -r requirements.txt
 script:
 - python manage.py test
+addons:
+  ssh_known_hosts:
+  - 140.143.17.33
+# after_success:
+  # - chmod 600 ~/.ssh/id_rsa   #还是Linux文件权限问题
