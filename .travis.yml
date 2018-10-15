@@ -13,3 +13,4 @@ script:
 before_install:
 - openssl aes-256-cbc -K $encrypted_80add9e7e319_key -iv $encrypted_80add9e7e319_iv
   -in configs.json.enc -out configs.json -d
+    - pip install -r requirements.txt
