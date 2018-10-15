@@ -8,6 +8,6 @@ env:
     - DJANGO=1.9.5 DB=mysql
 install:
     - pip install -r requirements.txt
-script: true
+script:
 
-    #- python manage.py test
+    - python manage.py test
