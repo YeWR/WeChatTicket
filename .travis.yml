@@ -15,7 +15,7 @@ install:
 - pip install -r requirements.txt
 before_script:
 - sudo mysql -e "create database wechat_ticket;"
-- python3 manage.py makemigrations
-- python3 manage.py migrate
+- sudo python3 manage.py makemigrations
+- sudo python3 manage.py migrate
 script:
 - sudo python3 manage.py test
