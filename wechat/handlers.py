@@ -2,7 +2,6 @@
 #
 from wechat.wrapper import WeChatHandler
 
-
 __author__ = "Epsirom"
 
 
