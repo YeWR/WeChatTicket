@@ -15,7 +15,8 @@ before_install:
 install:
 - pip install -r requirements.txt
 before_script:
-- mysql -e "create database 'wechat_ticket';"
+- mysql -e "create database IF NOT EXISTS wechat_ticket;" -uroot
+- mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost';" -uroot
 - python manage.py makemigrations
 - python manage.py migrate
 script:
