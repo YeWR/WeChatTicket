@@ -12,11 +12,10 @@ branchs:
 before_install:
 - openssl aes-256-cbc -K $encrypted_80add9e7e319_key -iv $encrypted_80add9e7e319_iv -in configs.json.enc -out configs.json -d
 install:
-- sudo apt-get install python3-pip
-- sudo pip3 install -r requirements.txt
+- pip install -r requirements.txt
 before_script:
-- sudo mysql -e "create database wechat_ticket;"
-- sudo python manage.py makemigrations
-- sudo python manage.py migrate
+- mysql -e "create database wechat_ticket;"
+- python manage.py makemigrations
+- python manage.py migrate
 script:
-- sudo python3 manage.py test
+- python manage.py test
