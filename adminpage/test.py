@@ -4,7 +4,19 @@ from . import views as views
 import requests
 import json
 
-class AdminPageTest(TestCase):
+class AuthAdminPageTest(TestCase):
+    def test_admin_login_get(self):
+        # model to post
+        url = 'http://127.0.0.1/api/a/login'
+        parms = {}
+        headers = {
+        'User-agent':'Mozilla/5.0'
+        }
+        resp = requests.get(url,data=parms,headers=headers)
+        mess = json.loads(resp.text)
+        self.assertEqual(mess['code'], 4)
+        self.assertEqual(mess['msg'], '')
+
     def test_admin_login_fail(self):
         # model to post 
         url = 'http://127.0.0.1/api/a/login'
@@ -34,6 +46,17 @@ class AdminPageTest(TestCase):
     def test_admin_logout(self):
         pass
 
+class ActiAdminPageTest(TestCase):
+    def test_admin_list(self):
+        url = 'http://127.0.0.1/api/a/login'
+        parms = {}
+        headers = {
+            'User-agent': 'Mozilla/5.0'
+        }
+        resp = requests.get(url, data=parms, headers=headers)
+        mess = json.loads(resp.text)
+        self.assertEqual(mess['code'], 4)
+        self.assertEqual(mess['msg'], '')
 
 
 # class AnimalTestCase(TestCase):

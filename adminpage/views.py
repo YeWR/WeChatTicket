@@ -38,7 +38,6 @@ class AdminLogin(APIView):
         else:
             raise ValidateError("admin validate error")
 
-
 class AdminLogout(APIView):
 
     def get(self):
