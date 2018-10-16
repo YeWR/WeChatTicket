@@ -1,5 +1,5 @@
-sudo: required
 language: python
+sudo: required
 python:
 - '3.5'
 services:
@@ -11,7 +11,7 @@ branchs:
   - master
 before_install:
 - openssl aes-256-cbc -K $encrypted_80add9e7e319_key -iv $encrypted_80add9e7e319_iv -in configs.json.enc -out configs.json -d
-- sudo chmod 600 configs.json
+- chmod 600 configs.json
 install:
 - pip install -r requirements.txt
 before_script:
