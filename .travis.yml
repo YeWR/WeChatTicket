@@ -6,6 +6,8 @@ services:
 - mysql
 env:
 - DJANGO=1.9.5 DB=mysql
+  global:
+    - BUILD_ON_TRAVIS=true
 branchs:
   only:
   - master
