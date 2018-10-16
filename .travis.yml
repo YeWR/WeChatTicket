@@ -15,8 +15,8 @@ before_install:
 install:
 - pip install -r requirements.txt
 before_script:
+- mysql -e "ALTER USER root CREATEDB;"
 - mysql -e "create database wechat_ticket;"
-- ALTER USER django CREATEDB;
 - python manage.py makemigrations
 - python manage.py migrate
 script:
