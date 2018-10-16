@@ -62,7 +62,8 @@ target/
 .ipynb_checkpoints
 
 # JetBrains
-.idea/
+.idea/*
+.idea
 
 # Custom files
 /configs.json
