@@ -6,9 +6,9 @@ services:
 - mysql
 env:
   - DJANGO_VERSION=1.9.5 DB=mysql
-branchs:
-  only:
-  - master
+#branchs:
+#  only:
+#  - master
 install:
 - pip install -r requirements.txt
 - mv configs.example.json configs.json
