@@ -56,8 +56,6 @@ class ActivityDetail(APIView):
                 }
         except Activity.DoesNotExist:
             raise LogicError('Activity not found')
-    def post(self):
-        pass
 
 class TicketDetail(APIView):
 
@@ -82,7 +80,5 @@ class TicketDetail(APIView):
             }
         except Activity.DoesNotExist:
             raise LogicError('Ticket not found')
-    def post(self):
-        pass
 
 
