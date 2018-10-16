@@ -11,14 +11,13 @@ env:
 branchs:
   only:
   - master
-before_install:
-- openssl aes-256-cbc -K $encrypted_80add9e7e319_key -iv $encrypted_80add9e7e319_iv -in configs.json.enc -out configs.json -d
-- chmod 600 configs.json
+# before_install:
+# - openssl aes-256-cbc -K $encrypted_80add9e7e319_key -iv $encrypted_80add9e7e319_iv -in configs.json.enc -out configs.json -d
+# - chmod 600 configs.json
 install:
 - pip install -r requirements.txt
 before_script:
-- mysql -e "create database IF NOT EXISTS wechat_ticket;" -uroot
-- mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost';" -uroot
+- mysql -e "create database wechat_ticket;" -uroot
 - python manage.py makemigrations
 - python manage.py migrate
 script:
