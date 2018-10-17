@@ -34,7 +34,7 @@ class AdminLogin(APIView):
             if user.is_active:
                 login(self.request, user)
             else:
-                return
+                raise ValidateError("admin validate error")
         else:
             raise ValidateError("admin validate error")
 
@@ -44,7 +44,6 @@ class AdminLogout(APIView):
         pass
 
     def post(self):
-        with transaction.atomic():
             logout(self.request)
 
 
