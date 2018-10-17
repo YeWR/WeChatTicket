@@ -141,7 +141,7 @@ class ActiDetailTest(TestCase):
         c.login(username='wu',password='1234')
         resp = c.post('/api/a/activity/detail',{'id':s.id,\
                                                 'name':'11111',\
-                                                'place':'aaa',\
+                                                'place':'ss',\
                                                 'description':'ss',\
                                                 'picUrl':'to test',
                                                 'startTime':s.start_time,\
@@ -156,3 +156,58 @@ class ActiDetailTest(TestCase):
         # change
         t = Activity.objects.get(pk=s.id)
         self.assertEqual(t.pic_url, 'to test')
+
+    def test_acti_det_mod_statusFail(self):
+        s = Activity(name='11111', key='11', description='aaa', start_time=timezone.now(), \
+                     end_time=timezone.now(), place='ss', book_end=timezone.now(), \
+                     book_start=timezone.now(), total_tickets='123', status='1', pic_url='sss', remain_tickets='1')
+        s.save()
+        User.objects.create_user(username='wu', email="dui_zhang@163.com", password='1234')
+        c.login(username='wu', password='1234')
+        resp = c.post('/api/a/activity/detail', {'id': s.id, \
+                                                 'name': 'to test', \
+                                                 'place': 'to test', \
+                                                 'description': 'ss', \
+                                                 'picUrl': 'sss',
+                                                 'startTime': s.start_time, \
+                                                 'endTime': s.end_time, \
+                                                 'bookStart': timezone.now(), \
+                                                 'bookEnd': s.book_end, \
+                                                 'totalTickets': '123', \
+                                                 'status': '1'})
+        mess = json.loads(str(resp.content, encoding="utf-8"))
+        self.assertEqual(mess['code'], 0)
+        self.assertEqual(mess['msg'], '')
+        # no change
+        t = Activity.objects.get(pk=s.id)
+        self.assertEqual(t.name, '11111')
+        self.assertEqual(t.place, 'ss')
+        self.assertEqual(t.book_start, s.book_start)
+
+    def test_acti_det_mod_timeFail(self):
+        s = Activity(name='11111', key='11', description='aaa', start_time=timezone.now(), \
+                     end_time=timezone.now(), place='ss', book_end=timezone.now(), \
+                     book_start=timezone.now(), total_tickets='123', status='1', pic_url='sss', remain_tickets='1')
+        s.save()
+        User.objects.create_user(username='wu', email="dui_zhang@163.com", password='1234')
+        c.login(username='wu', password='1234')
+        resp = c.post('/api/a/activity/detail', {'id': s.id, \
+                                                 'name': '11111', \
+                                                 'place': 'ss', \
+                                                 'description': 'ss', \
+                                                 'picUrl': 'sss',
+                                                 'startTime': 'ssss', \
+                                                 'endTime': 'ssss', \
+                                                 'bookStart': s.book_start, \
+                                                 'bookEnd': 'ssss', \
+                                                 'totalTickets': '2333333', \
+                                                 'status': '1'})
+        mess = json.loads(str(resp.content, encoding="utf-8"))
+        self.assertEqual(mess['code'], 0)
+        self.assertEqual(mess['msg'], '')
+        # no change
+        t = Activity.objects.get(pk=s.id)
+        self.assertEqual(t.total_tickets, 123)
+        self.assertEqual(t.start_time, s.start_time)
+        self.assertEqual(t.end_time, s.end_time)
+        self.assertEqual(t.book_end, s.book_end)
