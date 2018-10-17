@@ -37,8 +37,8 @@ IGNORE_WECHAT_SIGNATURE = CONFIGS['IGNORE_WECHAT_SIGNATURE']
 WECHAT_TOKEN = CONFIGS['WECHAT_TOKEN']
 WECHAT_APPID = CONFIGS['WECHAT_APPID']
 WECHAT_SECRET = CONFIGS['WECHAT_SECRET']
-
-ALLOWED_HOSTS = ['140.143.17.33']
+# to do validate this is ok or not
+ALLOWED_HOSTS = ['140.143.17.33','958107.iterator-traits.com']
 
 
 # Application definition
@@ -139,7 +139,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
@@ -148,13 +148,14 @@ USE_L10N = True
 USE_TZ = True
 
 
+MEDIA_ROOT = os.path.join(BASE_DIR,'static/uploads')
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-
 
 # Site and URL
 SITE_DOMAIN = CONFIGS['SITE_DOMAIN'].rstrip('/')

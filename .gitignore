@@ -1,5 +1,5 @@
 # Byte-compiled / optimized / DLL files
-__pycache__/
+*__pycache__/
 *.py[cod]
 *$py.class
 
@@ -62,6 +62,7 @@ target/
 .ipynb_checkpoints
 
 # JetBrains
+.idea/*
 .idea
 
 # Custom files
