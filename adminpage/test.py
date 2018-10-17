@@ -195,7 +195,7 @@ class ActiDetailTest(TestCase):
                                                  'name': '11111', \
                                                  'place': 'ss', \
                                                  'description': 'ss', \
-                                                 'picUrl': 'sss',
+                                                 'picUrl': 'to test',\
                                                  'startTime': 'ssss', \
                                                  'endTime': 'ssss', \
                                                  'bookStart': s.book_start, \
@@ -207,6 +207,7 @@ class ActiDetailTest(TestCase):
         self.assertEqual(mess['msg'], '')
         # no change
         t = Activity.objects.get(pk=s.id)
+        self.assertEqual(t.pic_url,'to test')
         self.assertEqual(t.total_tickets, 123)
         self.assertEqual(t.start_time, s.start_time)
         self.assertEqual(t.end_time, s.end_time)
