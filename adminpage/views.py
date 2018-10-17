@@ -86,13 +86,8 @@ class ActivityDelete(APIView):
             with transaction.atomic():
                 act = Activity.objects.select_for_update().filter(id=self.input['id'])
                 for item in act:
-                    # delete pic uploaded
-                    names = (item.pic_url.split('/'))
-                    name = names[len(names)-1]
-                    path = os.path.join(MEDIA_ROOT,name)
-                    if os.path.isfile(path):
-                        os.remove(path)
-                    item.delete()
+                    item.status = -1
+                    item.save()
         except :
             raise LogicError('delete fail')
 
