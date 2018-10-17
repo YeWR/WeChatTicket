@@ -1,11 +1,11 @@
-sudo: required
 language: python
+sudo: required
 python:
 - '3.5'
 services:
 - mysql
 env:
-- DJANGO=1.9.5 DB=mysql
+- DJANGO_VERSION=1.9.5 DB=mysql
 #branchs:
 #  only:
 #  - master
