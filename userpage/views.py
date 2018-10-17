@@ -1,5 +1,6 @@
 from codex.baseerror import *
 from codex.baseview import APIView
+from django.db import transaction
 
 from wechat.models import User, Activity, Ticket
 import re, time
@@ -28,15 +29,17 @@ class UserBind(APIView):
         self.check_input('openid', 'student_id', 'password')
         user = User.get_by_openid(self.input['openid'])
         self.validate_user()
-        user.student_id = self.input['student_id']
-        user.save()
+        with transaction.atomic():
+            user.student_id = self.input['student_id']
+            user.save()
 
 class ActivityDetail(APIView):
 
     def get(self):
         self.check_input('id')
         try:
-            activity = Activity.objects.get(id=self.input['id'])
+            with transaction.atomic():
+                activity = Activity.objects.select_for_update().get(id=self.input['id'])
             if activity.status != Activity.STATUS_PUBLISHED:
                 raise InputError('Activity not published')
             else:
@@ -67,7 +70,8 @@ class TicketDetail(APIView):
         except:
             raise LogicError("User not binded")
         try:
-            ticket = Ticket.objects.get(student_id=studentID, unique_id=self.input['ticket'])
+            with transaction.atomic():
+                ticket = Ticket.objects.select_for_update().get(student_id=studentID, unique_id=self.input['ticket'])
             return{
                     'activityName': ticket.activity.name,
                     'place' : ticket.activity.place,
