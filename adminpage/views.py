@@ -194,3 +194,20 @@ class ActivityDetail(APIView):
                 item.save()
         else:
             raise LoginError('')
+
+
+class ActivityMenu(APIView):
+
+    def get(self):
+        pass
+
+    def post(self):
+        pass
+        # if self.request.user.is_authenticated():
+        #     img = self.input['image']
+        #     path = default_storage.save(MEDIA_ROOT + '/' + img[0].name, ContentFile(img[0].read()))
+        #     names = path.split('/')
+        #     name_final = names[len(names) - 1]
+        #     return 'http://' + SITE_DOMAIN + '/uploads/' + name_final
+        # else:
+        #     raise LoginError('')
