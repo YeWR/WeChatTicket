@@ -29,28 +29,20 @@ class AuthLoginPostSucc(TestCase):
         mess = json.loads(str(resp.content, encoding = "utf-8"))
         self.assertEqual(mess['code'], 0)
         self.assertEqual(mess['msg'], '')
-#
+
 # class AuthLogoutPost(TestCase):
 #     def test_admin_logout(self):
-#         url = 'http://140.143.17.33/api/a/logout'
-#         parms = {}
-#         headers = {
-#             'User-agent': 'Mozilla/5.0'
-#         }
-#         resp = requests.post(url, data=parms, headers=headers)
-#         mess = json.loads(resp.text)
+#         c = Client()
+#         resp = c.post('/api/a/logout')
+#         mess = json.loads(str(resp.content, encoding = "utf-8"))
 #         self.assertEqual(mess['code'], 0)
 #         self.assertEqual(mess['msg'], '')
-#
+
 # class ActiListGetFail(TestCase):
 #     def test_acti_get_fail(self):
-#         url = 'http://140.143.17.33/api/a/activity/list/'
-#         parms = {}
-#         headers = {
-#             'User-agent': 'Mozilla/5.0'
-#         }
-#         resp = requests.get(url, data=parms, headers=headers)
-#         mess = json.loads(resp.text)
+#         c = Client()
+#         resp = c.post('/api/a/activity/list')
+#         mess = json.loads(str(resp.content, encoding = "utf-8"))
 #         self.assertEqual(mess['code'], 4)
 #         self.assertEqual(mess['msg'], '')
 
