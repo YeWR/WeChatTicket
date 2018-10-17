@@ -1,5 +1,6 @@
 from codex.baseerror import *
 from codex.baseview import APIView
+from django.db import transaction
 
 from wechat.models import User, Activity, Ticket
 import re, time
@@ -28,27 +29,29 @@ class UserBind(APIView):
         self.check_input('openid', 'student_id', 'password')
         user = User.get_by_openid(self.input['openid'])
         self.validate_user()
-        user.student_id = self.input['student_id']
-        user.save()
+        with transaction.atomic():
+            user.student_id = self.input['student_id']
+            user.save()
 
 class ActivityDetail(APIView):
 
     def get(self):
         self.check_input('id')
         try:
-            activity = Activity.objects.get(id=self.input['id'])
-            if activity['status'] != 1:
+            with transaction.atomic():
+                activity = Activity.objects.select_for_update().get(id=self.input['id'])
+            if activity.status != Activity.STATUS_PUBLISHED:
                 raise InputError('Activity not published')
             else:
                 return{
                         'name': activity.name,
                         'key' : activity.key,
                         'description':activity.description,
-                        'startTime':int(time.mktime(activity.start_time.timetuple())),
-                        'endTime':int(time.mktime(activity.end_time.timetuple())),
+                        'startTime':int(activity.start_time.timestamp()),
+                        'endTime':int(activity.end_time.timestamp()),
                         'place':activity.place,
-                        'bookStart':int(time.mktime(activity.book_start.timetuple())),
-                        'bookEnd':int(time.mktime(activity.book_end.timetuple())),
+                        'bookStart':int(activity.book_start.timestamp()),
+                        'bookEnd':int(activity.book_end.timestamp()),
                         'totalTickets': activity.total_tickets,
                         'picUrl': activity.pic_url,
                         'remainTickets': activity.remain_tickets,
@@ -67,18 +70,19 @@ class TicketDetail(APIView):
         except:
             raise LogicError("User not binded")
         try:
-            ticket = Ticket.objects.get(student_id=studentID, unique_id=self.input['ticket'])
+            with transaction.atomic():
+                ticket = Ticket.objects.select_for_update().get(student_id=studentID, unique_id=self.input['ticket'])
             return{
                     'activityName': ticket.activity.name,
                     'place' : ticket.activity.place,
                     'activityKey': ticket.activity.key,
                     'uniqueID': ticket.unique_id,
-                    'startTime':int(time.mktime(ticket.activity.start_time.timetuple())),
-                    'endTime':int(time.mktime(ticket.activity.end_time.timetuple())),
+                    'startTime':int(ticket.activity.start_time.timestamp()),
+                    'endTime':int(ticket.activity.end_time.timestamp()),
                     'currentTime':int(time.time()),
                     'status': ticket.status
             }
-        except Activity.DoesNotExist:
+        except Ticket.DoesNotExist:
             raise LogicError('Ticket not found')
 
 
