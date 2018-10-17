@@ -1,35 +1,37 @@
-from django.test import TestCase
+from django.test import TestCase, Client,RequestFactory
 from wechat.models import *
-import requests
+import userpage.views as views
 import json
 # Create your tests here.
 
 class UserBindTest(TestCase):
 
-    def test(self):
-        u1 = User.objects.create(open_id='abc')
-        u1.save()
-        u2 = User.objects.create(open_id='a', student_id='2016013224')
-        u2.save()
-        url = 'http://127.0.0.1:8000/api/u/user/bind/'
+    def testUserBind(self):
+        User.objects.create(open_id='abc')
+        User.objects.create(open_id='a', student_id='2016013224')
+        print(User.get_by_openid('abc').open_id)
+        print(User.get_by_openid('a').open_id)
+        c = Client()
+        resp = c.get("/api/u/user/bind", {'openid': 'a'})
+        mess = json.loads(str(resp.content, encoding="utf-8"))
+        self.assertEqual(mess['code'], 0)
+        self.assertEqual(mess['data'], '2016013224')
 
-        parms = {'openid': 'abc'}
-        resp = requests.get(url, parms)
-        mess = json.loads(resp.text)
-        print(mess)
-        #self.assertEqual(mess['code'], 3)
-        #self.assertEqual(mess['msg'], 'admin validate error')
-        parms = {'openid': 'a'}
-        resp = requests.get(url, parms)
-        mess = json.loads(resp.text)
-        print(mess)
+        resp = c.get("/api/u/user/bind", {'openid': 'abc'})
+        mess = json.loads(str(resp.content, encoding="utf-8"))
+        self.assertEqual(mess['code'], 0)
+        self.assertEqual(mess['data'], '')
 
         parms = {'openid':'abc','student_id':'2016013225','password':'abc'}
-        resp = requests.post(url, parms)
-        mess = json.loads(resp.text)
-        print(mess)
+        resp = c.post("/api/u/user/bind", parms)
+        mess = json.loads(str(resp.content, encoding="utf-8"))
 
-        parms = {'openid': 'a'}
-        resp = requests.get(url, parms)
-        mess = json.loads(resp.text)
-        print(mess)
+        parms = {'openid': 'abc'}
+        resp = c.get("/api/u/user/bind", parms)
+        mess = json.loads(str(resp.content, encoding="utf-8"))
+        self.assertEqual(mess['code'], 0)
+        self.assertEqual(mess['data'], '2016013225')
+
+        resp = c.get("/api/u/user/bind", {'openid': 'def'})
+        mess = json.loads(str(resp.content, encoding="utf-8"))
+        self.assertEqual(mess['code'], 2)
