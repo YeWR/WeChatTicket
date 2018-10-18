@@ -5,15 +5,14 @@ from codex.baseerror import LogicError
 
 class User(models.Model):
     open_id = models.CharField(max_length=64, unique=True, db_index=True)
-    student_id = models.CharField(max_length=32, unique=True, db_index=True)
+    student_id = models.CharField(max_length=32, unique=True, db_index=True, null=True)
 
     @classmethod
     def get_by_openid(cls, openid):
-        with transaction.atomic():
-            try:
-                return cls.objects.select_for_update().get(open_id=openid)
-            except cls.DoesNotExist:
-                raise LogicError('User not found')
+        try:
+            return cls.objects.select_for_update().get(open_id=openid)
+        except cls.DoesNotExist:
+            raise LogicError('User not found')
 
 
 class Activity(models.Model):
