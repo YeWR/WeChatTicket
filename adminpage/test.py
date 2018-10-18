@@ -2,20 +2,15 @@ from django.test import TestCase, Client
 from django.contrib.auth import models
 from wechat.models import Activity, Ticket, User
 from django.utils import timezone
-from django.contrib.auth import authenticate, logout, login
-from . import views as views
-# import requests
+
 import json
-import logging
 import time
-import datetime
 
 c = Client(HTTP_USER_AGENT='Mozilla/5.0')
 
 
 class AuthLoginGet(TestCase):
     def test_admin_login_get(self):
-        # c = Client(HTTP_USER_AGENT='Mozilla/5.0')
         resp = c.get('/api/a/login')
         mess = json.loads(str(resp.content, encoding="utf-8"))
         self.assertEqual(mess['code'], 4)
@@ -24,7 +19,6 @@ class AuthLoginGet(TestCase):
 
 class AuthLoginPostFail(TestCase):
     def test_admin_login_fail(self):
-        # c = Client(HTTP_USER_AGENT='Mozilla/5.0')
         resp = c.post('/api/a/login', {'username': 'wu', 'password': '1234'})
         mess = json.loads(str(resp.content, encoding="utf-8"))
         self.assertEqual(mess['code'], 3)
@@ -33,7 +27,6 @@ class AuthLoginPostFail(TestCase):
 
 class AuthLoginPostSucc(TestCase):
     def test_admin_login_success(self):
-        # c = Client(HTTP_USER_AGENT='Mozilla/5.0')
         models.User.objects.create_user(username='wu', email="dui_zhang@163.com", password='1234')
         resp = c.post('/api/a/login', {'username': 'wu', 'password': '1234'})
         mess = json.loads(str(resp.content, encoding="utf-8"))
@@ -126,11 +119,14 @@ class ActiDetailTest(TestCase):
     def getTimeStamp(self, str_time):
         return int(time.mktime(str_time.timetuple()))
 
-    def test_acti_det_get_succ(self):
+    def setUp(self):
         s = Activity(name='11111', key='11', description='aaa', start_time=timezone.now(),
                      end_time=timezone.now(), place='ss', book_end=timezone.now(),
                      book_start=timezone.now(), total_tickets='123', status='1', pic_url='sss', remain_tickets='1')
         s.save()
+
+    def test_acti_det_get_succ(self):
+        s = Activity.objects.filter(name = '11111').first()
         models.User.objects.create_user(username='wu', email="dui_zhang@163.com", password='1234')
         c.login(username='wu', password='1234')
         resp = c.get('/api/a/activity/detail', {'id': s.id})
@@ -149,10 +145,7 @@ class ActiDetailTest(TestCase):
         self.assertEqual(int(s.status), mess['data']['status'])
 
     def test_acti_det_mod_succ(self):
-        s = Activity(name='11111', key='11', description='aaa', start_time=timezone.now(),
-                     end_time=timezone.now(), place='ss', book_end=timezone.now(),
-                     book_start=timezone.now(), total_tickets='123', status='1', pic_url='sss', remain_tickets='1')
-        s.save()
+        s = Activity.objects.filter(name='11111').first()
         models.User.objects.create_user(username='wu', email="dui_zhang@163.com", password='1234')
         c.login(username='wu', password='1234')
         resp = c.post('/api/a/activity/detail', {'id': s.id,
@@ -174,10 +167,7 @@ class ActiDetailTest(TestCase):
         self.assertEqual(t.pic_url, 'to test')
 
     def test_acti_det_mod_statusFail(self):
-        s = Activity(name='11111', key='11', description='aaa', start_time=timezone.now(),
-                     end_time=timezone.now(), place='ss', book_end=timezone.now(),
-                     book_start=timezone.now(), total_tickets='123', status='1', pic_url='sss', remain_tickets='1')
-        s.save()
+        s = Activity.objects.filter(name='11111').first()
         models.User.objects.create_user(username='wu', email="dui_zhang@163.com", password='1234')
         c.login(username='wu', password='1234')
         resp = c.post('/api/a/activity/detail', {'id': s.id,
@@ -201,10 +191,7 @@ class ActiDetailTest(TestCase):
         self.assertEqual(t.book_start, s.book_start)
 
     def test_acti_det_mod_timeFail(self):
-        s = Activity(name='11111', key='11', description='aaa', start_time=timezone.now(),
-                     end_time=timezone.now(), place='ss', book_end=timezone.now(),
-                     book_start=timezone.now(), total_tickets='123', status='1', pic_url='sss', remain_tickets='1')
-        s.save()
+        s = Activity.objects.filter(name='11111').first()
         models.User.objects.create_user(username='wu', email="dui_zhang@163.com", password='1234')
         c.login(username='wu', password='1234')
         resp = c.post('/api/a/activity/detail', {'id': s.id,

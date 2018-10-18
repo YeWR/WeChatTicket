@@ -1,13 +1,7 @@
-import json
-import logging
 import time
-import datetime
 import os
 
-from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, logout, login
-from django.shortcuts import render
-from django.http import HttpResponse
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.db import transaction
@@ -17,7 +11,6 @@ from codex.baseview import APIView
 from WeChatTicket.settings import SITE_DOMAIN, MEDIA_ROOT
 from wechat.views import CustomWeChatView
 from wechat.models import Activity, Ticket
-from wechat import models
 
 
 class AdminLogin(APIView):
