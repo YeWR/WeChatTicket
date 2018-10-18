@@ -4,7 +4,7 @@ from wechat.models import Activity, Ticket, User
 from django.utils import timezone
 from django.contrib.auth import authenticate, logout, login
 from . import views as views
-import requests
+# import requests
 import json
 import logging
 import time
