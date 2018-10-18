@@ -82,6 +82,8 @@ class ActiDeleteSucc(TestCase):
                      book_start=timezone.now(), total_tickets='123', status='1', pic_url='sss', remain_tickets='1')
         s.save()
         name_test = s.name
+        models.User.objects.create_user(username='wu', email="dui_zhang@163.com", password='1234')
+        c.login(username='wu', password='1234')
         resp = c.post('/api/a/activity/delete', {'id': s.id})
         mess = json.loads(str(resp.content, encoding="utf-8"))
         self.assertEqual(mess['code'], 0)
@@ -97,6 +99,8 @@ class ActiCreateSucc(TestCase):
                'startTime': timezone.now(), 'endTime': timezone.now(),
                'bookStart': timezone.now(), 'bookEnd': timezone.now(),
                'totalTickets': 'aaa', 'status': '112', 'remainTickets': '12'}
+        models.User.objects.create_user(username='wu', email="dui_zhang@163.com", password='1234')
+        c.login(username='wu', password='1234')
         resp = c.post('/api/a/activity/create',
                       {'name': '111', 'key': '11', 'place': 'ss', 'description': 'ss', 'picUrl': 'ss',
                        'startTime': str(timezone.now()), 'endTime': str(timezone.now()),

@@ -84,15 +84,18 @@ class ActivityDelete(APIView):
         pass
 
     def post(self):
-        self.check_input('id')
-        try:
-            with transaction.atomic():
-                act = Activity.objects.select_for_update().filter(id=self.input['id'])
-                for item in act:
-                    item.status = Activity.STATUS_DELETED
-                    item.save()
-        except:
-            raise LogicError('delete fail')
+        if self.request.user.is_authenticated():
+            self.check_input('id')
+            try:
+                with transaction.atomic():
+                    act = Activity.objects.select_for_update().filter(id=self.input['id'])
+                    for item in act:
+                        item.status = Activity.STATUS_DELETED
+                        item.save()
+            except:
+                raise LogicError('delete fail')
+        else:
+            raise LoginError('')
 
 
 class ActivityCreate(APIView):
@@ -101,7 +104,10 @@ class ActivityCreate(APIView):
         pass
 
     def post(self):
-        try:
+        if self.request.user.is_authenticated():
+            self.check_input('name','key','place','description','picUrl','startTime','endTime','bookStart','bookEnd','totalTickets','status')
+            if len(self.input['picUrl']) > 256:
+                raise LogicError('picUrl is too long, please upload local picture')
             act = Activity(name=self.input['name'], key=self.input['key'], place=self.input['place'], \
                            description=self.input['description'], pic_url=self.input['picUrl'],
                            start_time=self.input['startTime'], \
@@ -111,9 +117,8 @@ class ActivityCreate(APIView):
                            remain_tickets=self.input['totalTickets'])
             act.save()
             return act.id
-        except:
-            raise LogicError('create fail')
-
+        else:
+            raise LoginError('')
 
 class ImageUpload(APIView):
 
@@ -143,6 +148,7 @@ class ActivityDetail(APIView):
 
     def get(self):
         if self.request.user.is_authenticated():
+            self.check_input('id')
             item = Activity.objects.filter(pk=self.input['id']).first()
             used_tickets = item.total_tickets - item.remain_tickets
             return {
@@ -165,6 +171,7 @@ class ActivityDetail(APIView):
     def post(self):
         if self.request.user.is_authenticated():
             with transaction.atomic():
+                self.check_input('id','description','status','picUrl','place','name','startTime','endTime','bookStart','bookEnd','totalTickets')
                 item = Activity.objects.select_for_update().filter(pk=self.input['id']).first()
                 # save to forbidden the type change of item
                 start_time = item.start_time
@@ -241,6 +248,7 @@ class ActivityCheckin(APIView):
 
     def post(self):
         if self.request.user.is_authenticated():
+            self.check_input('actId','studentId','ticket')
             items = Ticket.objects.filter(activity_id=self.input['actId'])
             for item in items:
                 if item.unique_id == self.input['ticket'] or item.student_id == self.input['studentId']:
