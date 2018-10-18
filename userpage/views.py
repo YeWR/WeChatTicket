@@ -19,10 +19,17 @@ class UserBind(APIView):
             raise ValidateError('Password Empty')
         if not re.match("201[0-9][0-9][0-9][0-9][0-9][0-9][0-9]$",self.input['student_id']):
             raise ValidateError('Invaild Student ID')
+        with transaction.atomic():
+            user = User.objects.select_for_update().filter(student_id=self.input['student_id']).first()
+        if user is not None:
+            raise ValidateError('Student ID Binded')
         #raise NotImplementedError('You should implement UserBind.validate_user method')
 
     def get(self):
         self.check_input('openid')
+        studentID = User.get_by_openid(self.input['openid']).student_id
+        if studentID is None:
+            return ''
         return User.get_by_openid(self.input['openid']).student_id
 
     def post(self):
@@ -58,7 +65,7 @@ class ActivityDetail(APIView):
                         'currentTime':int(time.time())
                 }
         except Activity.DoesNotExist:
-            raise LogicError('Activity not found')
+            raise InputError('Activity not found')
 
 class TicketDetail(APIView):
 
@@ -68,7 +75,7 @@ class TicketDetail(APIView):
         try:
             studentID = user.student_id
         except:
-            raise LogicError("User not binded")
+            raise ValidateError("User not binded")
         try:
             with transaction.atomic():
                 ticket = Ticket.objects.select_for_update().get(student_id=studentID, unique_id=self.input['ticket'])
@@ -83,6 +90,6 @@ class TicketDetail(APIView):
                     'status': ticket.status
             }
         except Ticket.DoesNotExist:
-            raise LogicError('Ticket not found')
+            raise InputError('Ticket not found')
 
 
