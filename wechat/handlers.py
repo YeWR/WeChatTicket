@@ -5,6 +5,7 @@ import time
 import uuid
 
 from django.db.models import Q
+from django.db import transaction
 
 from wechat.models import Activity, Ticket
 from wechat.wrapper import WeChatHandler
@@ -50,9 +51,12 @@ class UnbindOrUnsubscribeHandler(WeChatHandler):
         return self.is_text('解绑') or self.is_event('unsubscribe')
 
     def handle(self):
-        self.user.student_id = ''
-        self.user.save()
-        return self.reply_text(self.get_message('unbind_account'))
+        if not self.user or not self.user.student_id:
+            return self.reply_text('对不起，您还没有绑定，不能解绑。')
+        else:
+            self.user.student_id = ''
+            self.user.save()
+            return self.reply_text(self.get_message('unbind_account'))
 
 
 class BindAccountHandler(WeChatHandler):
@@ -117,7 +121,7 @@ class CheckTicketHandler(WeChatHandler):
                 'Url': self.url_bind(),
             })
         else:
-            # 取票
+            # 查票
             tickets = Ticket.objects.filter(student_id=self.user.student_id, status=Ticket.STATUS_VALID)
             # 没有票
             if not tickets:
@@ -149,6 +153,9 @@ class BookTicketHandler(WeChatHandler):
         return u
 
     def check(self):
+        # is_text有问题
+        print(self.input['Content'])
+        print(self.is_text('抢票'))
         return self.is_text('抢票') or self.is_event_book_click(self.view.event_keys['book_header'])
 
     def handle(self):
@@ -170,10 +177,12 @@ class BookTicketHandler(WeChatHandler):
             if self.is_text('抢票'):
                 # >>> 抢票 XXXX
                 query = self.input['Content'][3:]
+                # TODO：似乎不用加锁这里
                 activity = Activity.objects.filter(Q(name=query) | Q(key=query)).first()
             # 点击抢票
             elif self.is_event_book_click(self.view.event_keys['book_header']):
                 id = int(self.input['EventKey'].split('_')[-1])
+                # TODO：似乎不用加锁这里
                 activity = Activity.objects.filter(id=id).first()
 
             # 没有该活动
@@ -196,7 +205,9 @@ class BookTicketHandler(WeChatHandler):
                 return self.reply_text('对不起，票已售空！')
 
             # 是否已有票
-            yourTicket = Ticket.objects.filter(student_id=self.user.student_id, activity=activity).first()
+            # 加锁
+            with transaction.atomic():
+                yourTicket = Ticket.objects.filter(student_id=self.user.student_id, activity=activity).first()
 
             # 已有票
             if yourTicket and yourTicket.status == Ticket.STATUS_VALID:
@@ -218,14 +229,17 @@ class BookTicketHandler(WeChatHandler):
                 })
             # 购买新票
             else:
-                newTicket = Ticket.objects.create(
-                    student_id=self.user.student_id,
-                    unique_id=self.getUniqueId(),
-                    activity=activity,
-                    status=Ticket.STATUS_VALID
-                )
+                # 加锁
+                with transaction.atomic():
+                    newTicket = Ticket.objects.create(
+                        student_id=self.user.student_id,
+                        unique_id=self.getUniqueId(),
+                        activity=activity,
+                        status=Ticket.STATUS_VALID
+                    )
+                    # 剩余票数减少
+                    activity.remain_tickets -= 1
 
-                activity.remain_tickets -= 1
                 return self.reply_single_news({
                     'Title': self.user.student_id + '，您好!' + activity.name + "已抢票成功！",
                     'Description': activity.description,
@@ -251,8 +265,8 @@ class RefundTicketHandler(WeChatHandler):
                 'Url': self.url_bind(),
             })
         else:
-            # TODO:加锁
             # >>> 退票 XXXX
+            # TODO：似乎不用加锁这里
             query = self.input['Content'][3:]
             activity = Activity.objects.filter(Q(name=query) | Q(key=query)).first()
 
@@ -276,22 +290,24 @@ class RefundTicketHandler(WeChatHandler):
                 return self.reply_text('对不起，抢票已结束，无法退票！')
 
             # 用户的票
-            yourTicket = Ticket.objects.filter(student_id=self.user.student_id, activity=activity).first()
+            # 加锁
+            with transaction.atomic():
+                yourTicket = Ticket.objects.filter(student_id=self.user.student_id, activity=activity).first()
 
-            # 尚未购票
-            if not yourTicket:
-                return self.reply_text('对不起，您尚未购票，无法退票！')
-            elif yourTicket.status == Ticket.STATUS_CANCELLED:
-                return self.reply_text('对不起，您已退过此票，无法退票！')
-            elif yourTicket.status == Ticket.STATUS_USED:
-                return self.reply_text('对不起，您已使用过此票，无法退票！')
+                # 尚未购票
+                if not yourTicket:
+                    return self.reply_text('对不起，您尚未购票，无法退票！')
+                elif yourTicket.status == Ticket.STATUS_CANCELLED:
+                    return self.reply_text('对不起，您已退过此票，无法退票！')
+                elif yourTicket.status == Ticket.STATUS_USED:
+                    return self.reply_text('对不起，您已使用过此票，无法退票！')
 
-            # 退票成功
-            yourTicket.status = Ticket.STATUS_CANCELLED
-            yourTicket.save()
+                # 退票成功
+                yourTicket.status = Ticket.STATUS_CANCELLED
+                yourTicket.save()
 
-            #
-            activity.remain_tickets += 1
-            activity.save()
+                # 票数增加
+                activity.remain_tickets += 1
+                activity.save()
 
             return self.reply_text('您已成功退票！')
