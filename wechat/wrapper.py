@@ -70,8 +70,7 @@ class WeChatHandler(object):
         return self.input['MsgType'] == check_type
 
     def is_text(self, *texts):
-        content = self.input['Content'].split()[0].lower()
-        return self.is_msg_type('text') and (content in texts)
+        return self.is_msg_type('text') and (self.input['Content'].split()[0].lower() in texts)
 
     def is_event_click(self, *event_keys):
         return self.is_msg_type('event') and (self.input['Event'] == 'CLICK') and (self.input['EventKey'] in event_keys)

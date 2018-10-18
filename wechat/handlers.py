@@ -153,9 +153,6 @@ class BookTicketHandler(WeChatHandler):
         return u
 
     def check(self):
-        # is_text有问题
-        print(self.input['Content'])
-        print(self.is_text('抢票'))
         return self.is_text('抢票') or self.is_event_book_click(self.view.event_keys['book_header'])
 
     def handle(self):
