@@ -110,7 +110,7 @@ class CheckTicketHandler(WeChatHandler):
 
     def handle(self):
         # 判断是否有效
-        if not self.user or self.user.student_id == '':
+        if not self.user or not self.user.student_id:
             return self.reply_single_news({
                 'Title': "绑定学号",
                 'Description': "请点击下方链接进行学号绑定",
@@ -153,7 +153,7 @@ class BookTicketHandler(WeChatHandler):
 
     def handle(self):
         # 判断是否有效
-        if not self.user or self.user.student_id == '':
+        if not self.user or not self.user.student_id:
             return self.reply_single_news({
                 'Title': "绑定学号",
                 'Description': "请点击下方链接进行学号绑定",
@@ -244,7 +244,7 @@ class RefundTicketHandler(WeChatHandler):
 
     def handle(self):
         # 判断是否有效
-        if not self.user or self.user.student_id == '':
+        if not self.user or not self.user.student_id:
             return self.reply_single_news({
                 'Title': "绑定学号",
                 'Description': "请点击下方链接进行学号绑定",
