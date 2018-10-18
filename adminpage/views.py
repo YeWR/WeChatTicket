@@ -17,6 +17,7 @@ from codex.baseview import APIView
 from WeChatTicket.settings import SITE_DOMAIN, MEDIA_ROOT
 from wechat.views import CustomWeChatView
 from wechat.models import Activity, Ticket
+from wechat import models
 
 
 class AdminLogin(APIView):
@@ -105,20 +106,22 @@ class ActivityCreate(APIView):
 
     def post(self):
         if self.request.user.is_authenticated():
-            self.check_input('name','key','place','description','picUrl','startTime','endTime','bookStart','bookEnd','totalTickets','status')
+            self.check_input('name', 'key', 'place', 'description', 'picUrl', 'startTime', 'endTime', 'bookStart',
+                             'bookEnd', 'totalTickets', 'status')
             if len(self.input['picUrl']) > 256:
                 raise LogicError('picUrl is too long, please upload local picture')
-            act = Activity(name=self.input['name'], key=self.input['key'], place=self.input['place'], \
+            act = Activity(name=self.input['name'], key=self.input['key'], place=self.input['place'],
                            description=self.input['description'], pic_url=self.input['picUrl'],
-                           start_time=self.input['startTime'], \
+                           start_time=self.input['startTime'],
                            end_time=self.input['endTime'], book_start=self.input['bookStart'],
-                           book_end=self.input['bookEnd'], \
-                           total_tickets=self.input['totalTickets'], status=self.input['status'], \
+                           book_end=self.input['bookEnd'],
+                           total_tickets=self.input['totalTickets'], status=self.input['status'],
                            remain_tickets=self.input['totalTickets'])
             act.save()
             return act.id
         else:
             raise LoginError('')
+
 
 class ImageUpload(APIView):
 
@@ -171,7 +174,8 @@ class ActivityDetail(APIView):
     def post(self):
         if self.request.user.is_authenticated():
             with transaction.atomic():
-                self.check_input('id','description','status','picUrl','place','name','startTime','endTime','bookStart','bookEnd','totalTickets')
+                self.check_input('id', 'description', 'status', 'picUrl', 'place', 'name', 'startTime', 'endTime',
+                                 'bookStart', 'bookEnd', 'totalTickets')
                 item = Activity.objects.select_for_update().filter(pk=self.input['id']).first()
                 # save to forbidden the type change of item
                 start_time = item.start_time
@@ -248,22 +252,24 @@ class ActivityCheckin(APIView):
 
     def post(self):
         if self.request.user.is_authenticated():
-            self.check_input('actId','studentId','ticket')
             items = Ticket.objects.filter(activity_id=self.input['actId'])
-            for item in items:
-                if item.unique_id == self.input['ticket'] or item.student_id == self.input['studentId']:
-                    if item.status == Ticket.STATUS_VALID:
-                        with transaction.atomic():
-                            if item.status == Ticket.STATUS_VALID:
-                                item = Ticket.objects.select_for_update().filter(unique_id=item.unique_id).first()
-                                item.status = Ticket.STATUS_USED
-                                item.save()
-                            else:
-                                raise LogicError('')
-                        return {
-                            'ticket': item.unique_id,
-                            'studentId': item.student_id
-                        }
-            raise LogicError('')
+            try:
+                for item in items:
+                    if item.student_id == self.input['studentId']:
+                        if item.status == Ticket.STATUS_VALID:
+                            with transaction.atomic():
+                                if item.status == Ticket.STATUS_VALID:
+                                    item = Ticket.objects.select_for_update().filter(unique_id=item.unique_id).first()
+                                    item.status = Ticket.STATUS_USED
+                                    item.save()
+                                else:
+                                    raise LogicError('')
+                            return {
+                                'ticket': item.unique_id,
+                                'studentId': item.student_id
+                            }
+            except:
+                raise LogicError('检票失败')
+            raise LogicError('检票失败')
         else:
             raise LoginError('')
