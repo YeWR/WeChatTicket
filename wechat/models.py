@@ -9,11 +9,10 @@ class User(models.Model):
 
     @classmethod
     def get_by_openid(cls, openid):
-        with transaction.atomic():
-            try:
-                return cls.objects.select_for_update().get(open_id=openid)
-            except cls.DoesNotExist:
-                raise LogicError('User not found')
+        try:
+            return cls.objects.select_for_update().get(open_id=openid)
+        except cls.DoesNotExist:
+            raise LogicError('User not found')
 
 
 class Activity(models.Model):
