@@ -158,7 +158,7 @@ STATIC_URL = '/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Site and URL
-SITE_DOMAIN = CONFIGS['SITE_DOMAIN'].rstrip('/')
+SITE_DOMAIN = CONFIGS['SITE_DOMAIN']
 
 
 def get_url(path, params=None):

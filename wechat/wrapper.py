@@ -15,12 +15,10 @@ from WeChatTicket import settings
 from codex.baseview import BaseView
 from wechat.models import User
 
-
 __author__ = "Epsirom"
 
 
 class WeChatHandler(object):
-
     logger = logging.getLogger('WeChat')
 
     def __init__(self, view, msg, user):
@@ -77,6 +75,11 @@ class WeChatHandler(object):
     def is_event_click(self, *event_keys):
         return self.is_msg_type('event') and (self.input['Event'] == 'CLICK') and (self.input['EventKey'] in event_keys)
 
+    # TODO:可能会有修改
+    def is_event_book_click(self, *event_keys):
+        return self.is_msg_type('event') and (self.input['Event'] == 'CLICK') and (
+                self.view.event_keys['book_header'] in self.input['EventKey'])
+
     def is_event(self, *events):
         return self.is_msg_type('event') and (self.input['Event'] in events)
 
@@ -88,6 +91,12 @@ class WeChatHandler(object):
 
     def url_bind(self):
         return settings.get_url('u/bind', {'openid': self.user.open_id})
+
+    def url_book_what(self, activity_id):
+        return settings.get_url('u/activity', {'id': activity_id})
+
+    def url_book_ticket(self, ticket_id):
+        return settings.get_url('u/ticket', {'openid': self.user.open_id, 'ticket': ticket_id})
 
 
 class WeChatEmptyHandler(WeChatHandler):
@@ -111,7 +120,6 @@ class WeChatError(Exception):
 
 
 class WeChatLib(object):
-
     logger = logging.getLogger('wechatlib')
     access_token = ''
     access_token_expire = datetime.datetime.fromtimestamp(0)
@@ -153,7 +161,7 @@ class WeChatLib(object):
     @classmethod
     def get_wechat_access_token(cls):
         if datetime.datetime.now() >= cls.access_token_expire:
-            print("appid=%s secret=%s" %(cls.appid, cls.secret))
+            print("appid=%s secret=%s" % (cls.appid, cls.secret))
             res = cls._http_get(
                 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s' % (
                     cls.appid, cls.secret
@@ -188,7 +196,6 @@ class WeChatLib(object):
 
 
 class WeChatView(BaseView):
-
     logger = logging.getLogger('WeChat')
 
     lib = WeChatLib('', '', '')
