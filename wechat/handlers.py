@@ -84,6 +84,7 @@ class BookEmptyHandler(WeChatHandler):
         return self.reply_text(self.get_message('book_empty'))
 
 
+# 抢啥
 class BookWhatHandler(WeChatHandler):
 
     def check(self):
@@ -107,6 +108,7 @@ class BookWhatHandler(WeChatHandler):
         return self.reply_news(articles)
 
 
+#  查票
 class CheckTicketHandler(WeChatHandler):
 
     def check(self):
@@ -141,15 +143,16 @@ class CheckTicketHandler(WeChatHandler):
                 return self.reply_news(articles)
 
 
+# 抢票
 class BookTicketHandler(WeChatHandler):
 
     def getTimeStamp(self, timeObj):
         return int(time.mktime(timeObj.timetuple()))
 
     def getUniqueId(self):
-        u3 = uuid.uuid3(uuid.NAMESPACE_DNS, self.user.student_id)
-        u4 = uuid.uuid4()
-        u = u4[:2] + u3 + u4[2:]
+        u3 = str(uuid.uuid3(uuid.NAMESPACE_DNS, self.user.student_id)).replace('-', 'x')
+        u4 = str(uuid.uuid4()).replace('-', 'o')
+        u = u4[5:15] + u3
         return u
 
     def check(self):
@@ -219,7 +222,7 @@ class BookTicketHandler(WeChatHandler):
 
                 activity.remain_tickets -= 1
                 return self.reply_single_news({
-                    'Title': self.user.student_id + '，您好!' + activity.name + "已抢票成功！",
+                    'Title': self.user.student_id + '，您好！' + activity.name + "已抢票成功！（重购此票）",
                     'Description': activity.description,
                     'Url': self.url_book_ticket(yourTicket.unique_id),
                     'PicUrl': activity.pic_url,
@@ -238,7 +241,7 @@ class BookTicketHandler(WeChatHandler):
                     activity.remain_tickets -= 1
 
                 return self.reply_single_news({
-                    'Title': self.user.student_id + '，您好!' + activity.name + "已抢票成功！",
+                    'Title': self.user.student_id + '，您好！' + activity.name + "已抢票成功！（新票）",
                     'Description': activity.description,
                     'Url': self.url_book_ticket(newTicket.unique_id),
                     'PicUrl': activity.pic_url,
