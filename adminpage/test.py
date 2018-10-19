@@ -143,12 +143,29 @@ class ActiDeleteSucc(TestCase):
         self.assertEqual(t[0].status, Activity.STATUS_DELETED)
 
 
-class ActiCreateSucc(TestCase):
+class ActiCreate(TestCase):
     def test_acti_create_get_succ(self):
         resp = c.get('/api/a/activity/create')
         mess = json.loads(str(resp.content, encoding="utf-8"))
         self.assertEqual(mess['code'], 0)
         self.assertEqual(mess['msg'], '')
+
+    def test_acti_create_picurl_fail(self):
+        pic = "ssssssssssssssssssssssssssssssssssssssssssssss"
+        s = ''
+        for i in range(20):
+            s = s + pic
+        models.User.objects.create_user(username='wu', email="dui_zhang@163.com", password='1234')
+        c.login(username='wu', password='1234')
+        resp = c.post('/api/a/activity/create',
+                      {'name': '111', 'key': '11', 'place': 'ss',
+                       'description': 'ss', 'picUrl': s,
+                       'startTime': str(timezone.now()), 'endTime': str(timezone.now()),
+                       'bookStart': str(timezone.now()), 'bookEnd': str(timezone.now()),
+                       'totalTickets': '123', 'status': Activity.STATUS_PUBLISHED})
+        mess = json.loads(str(resp.content, encoding="utf-8"))
+        self.assertEqual(mess['code'], 2)
+        self.assertEqual(mess['msg'], 'picUrl is too long, please upload local picture')
 
     def test_acti_create_post_fail(self):
         resp = c.post('/api/a/activity/create', {'name': '111'})
