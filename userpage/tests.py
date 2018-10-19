@@ -46,6 +46,11 @@ class UserBindTest(TestCase):
         mess = json.loads(str(resp.content, encoding="utf-8"))
         self.assertNotEqual(mess['code'], 0)
 
+        parms = {'openid': 'gh','student_id':'2016013228', 'password': 'abc'}
+        resp = c.post("/api/u/user/bind", parms)
+        mess = json.loads(str(resp.content, encoding="utf-8"))
+        self.assertNotEqual(mess['code'], 0)
+
         parms = {'openid':'abc','student_id':'2016013225','password':'abc'}
         resp = c.post("/api/u/user/bind", parms)
         mess = json.loads(str(resp.content, encoding="utf-8"))
