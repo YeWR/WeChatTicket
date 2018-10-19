@@ -83,7 +83,7 @@ class ActivityDetailTest(TestCase):
     def testActivityDetail_published(self):
         act = Activity.objects.create(name='abc',key='abcd',description='abcde',start_time='2016-06-03 13:00:00',end_time='2016-06-03 13:00:00',
                                 place='aaa',book_start='2016-06-03 13:00:00',book_end='2016-06-03 13:00:00',total_tickets=100,pic_url='http',
-                                remain_tickets=50,status=1)
+                                remain_tickets=50,status=Activity.STATUS_PUBLISHED)
         c = Client()
         resp = c.get("/api/u/activity/detail", {'id': act.id})
         mess = json.loads(str(resp.content, encoding="utf-8"))
@@ -93,7 +93,7 @@ class ActivityDetailTest(TestCase):
         #should raise Activity not published
         act = Activity.objects.create(name='abc', key='abcd', description='abcde', start_time='2016-06-03 13:00:00', end_time='2016-06-03 13:00:00',
                                 place='aaa', book_start='2016-06-03 13:00:00', book_end='2016-06-03 13:00:00', total_tickets=100, pic_url='http',
-                                remain_tickets=50, status=0)
+                                remain_tickets=50, status=Activity.STATUS_PUBLISHED)
         c = Client()
         resp = c.get("/api/u/activity/detail", {'id': 23333})
         mess = json.loads(str(resp.content, encoding="utf-8"))
@@ -103,7 +103,7 @@ class ActivityDetailTest(TestCase):
         #should raise Activity not published
         act = Activity.objects.create(name='abc', key='abcd', description='abcde', start_time='2016-06-03 13:00:00', end_time='2016-06-03 13:00:00',
                                 place='aaa', book_start='2016-06-03 13:00:00', book_end='2016-06-03 13:00:00', total_tickets=100, pic_url='http',
-                                remain_tickets=50, status=0)
+                                remain_tickets=50, status=Activity.STATUS_SAVED)
         c = Client()
         resp = c.get("/api/u/activity/detail", {'id': act.id})
         mess = json.loads(str(resp.content, encoding="utf-8"))
@@ -113,7 +113,7 @@ class ActivityDetailTest(TestCase):
         #should raise Activity not published
         act = Activity.objects.create(name='abc', key='abcd', description='abcde', start_time='2016-06-03 13:00:00', end_time='2016-06-03 13:00:00',
                                 place='aaa', book_start='2016-06-03 13:00:00', book_end='2016-06-03 13:00:00', total_tickets=100, pic_url='http',
-                                remain_tickets=50, status=0)
+                                remain_tickets=50, status=Activity.STATUS_PUBLISHED)
         c = Client()
         resp = c.get("/api/u/activity/detail")
         mess = json.loads(str(resp.content, encoding="utf-8"))
@@ -125,7 +125,7 @@ class TicketDetailTest(TestCase):
         User.objects.create(open_id='a', student_id='2016013224')
         Activity.objects.create(name='abc', key='abcd', description='abcde', start_time='2016-06-03 13:00:00', end_time='2016-06-03 13:00:00',
                                 place='aaa', book_start='2016-06-03 13:00:00', book_end='2016-06-03 13:00:00', total_tickets=100, pic_url='http',
-                                remain_tickets=50, status=1)
+                                remain_tickets=50, status=Activity.STATUS_PUBLISHED)
         Ticket.objects.create(student_id='2016013224', unique_id=10010, activity=Activity.objects.get(name='abc'),status=1)
         c = Client()
         resp = c.get("/api/u/ticket/detail", {'openid': 'a', 'ticket': 10010})
@@ -139,7 +139,7 @@ class TicketDetailTest(TestCase):
                                 end_time='2016-06-03 13:00:00',
                                 place='aaa', book_start='2016-06-03 13:00:00', book_end='2016-06-03 13:00:00',
                                 total_tickets=100, pic_url='http',
-                                remain_tickets=50, status=1)
+                                remain_tickets=50, status=Activity.STATUS_PUBLISHED)
         Ticket.objects.create(student_id='2016013224', unique_id=10010, activity=Activity.objects.get(name='abc'),
                               status=1)
         c = Client()
@@ -157,7 +157,7 @@ class TicketDetailTest(TestCase):
                                 end_time='2016-06-03 13:00:00',
                                 place='aaa', book_start='2016-06-03 13:00:00', book_end='2016-06-03 13:00:00',
                                 total_tickets=100, pic_url='http',
-                                remain_tickets=50, status=1)
+                                remain_tickets=50, status=Activity.STATUS_PUBLISHED)
         Ticket.objects.create(student_id='2016013224', unique_id=10010, activity=Activity.objects.get(name='abc'),
                               status=1)
         c = Client()
@@ -171,7 +171,7 @@ class TicketDetailTest(TestCase):
                                 end_time='2016-06-03 13:00:00',
                                 place='aaa', book_start='2016-06-03 13:00:00', book_end='2016-06-03 13:00:00',
                                 total_tickets=100, pic_url='http',
-                                remain_tickets=50, status=1)
+                                remain_tickets=50, status=Activity.STATUS_PUBLISHED)
         Ticket.objects.create(student_id='2016013224', unique_id=10010, activity=Activity.objects.get(name='abc'),
                               status=1)
         c = Client()
@@ -185,7 +185,7 @@ class TicketDetailTest(TestCase):
                                 end_time='2016-06-03 13:00:00',
                                 place='aaa', book_start='2016-06-03 13:00:00', book_end='2016-06-03 13:00:00',
                                 total_tickets=100, pic_url='http',
-                                remain_tickets=50, status=1)
+                                remain_tickets=50, status=Activity.STATUS_PUBLISHED)
         Ticket.objects.create(student_id='2016013224', unique_id=10010, activity=Activity.objects.get(name='abc'),
                               status=1)
         c = Client()
