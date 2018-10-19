@@ -395,7 +395,7 @@ class TestBookWhat(TestCase):
                     else:
                         self.assertEqual(self.no_activities(content), True)
             # add activities
-            createActivities(maxActivities)
+            createActivities(maxActivities - 1)
 
     def test_event_click(self):
         users = User.objects.all()
@@ -423,7 +423,7 @@ class TestBookWhat(TestCase):
                     else:
                         self.assertEqual(self.no_activities(content), True)
             # add activities
-            createActivities(maxActivities)
+            createActivities(maxActivities - 1)
 
 
 # 查票
@@ -445,9 +445,12 @@ class TestCheckTicket(TestCase):
         self.clickEvents = [CustomWeChatView.event_keys['get_ticket']]
 
     def book_ticket(self, user, act_name):
+        activity = Activity.objects.filter(name=act_name).first()
         Ticket.objects.create(student_id=str(user.student_id), unique_id=str(random.randint(0, 9999999)),
-                              activity=Activity.objects.get(name=act_name),
+                              activity=activity,
                               status=Ticket.STATUS_VALID)
+        activity.remain_tickets -= 1
+        activity.save()
 
     # 未绑用户
     def is_unbind(self, content):
@@ -629,9 +632,12 @@ class TestBookTicket(TestCase):
 
     # 抢票
     def book_ticket(self, user, act_name):
+        activity = Activity.objects.filter(name=act_name).first()
         Ticket.objects.create(student_id=str(user.student_id), unique_id=str(random.randint(0, 9999999)),
-                              activity=Activity.objects.get(name=act_name),
+                              activity=activity,
                               status=Ticket.STATUS_VALID)
+        activity.remain_tickets -= 1
+        activity.save()
 
     # 使用票
     def use_ticket(self, user, act_name):
@@ -875,75 +881,68 @@ class TestRefundTicket(TestCase):
 
         # textMsgs => 用户一般可能输入(成功)
         self.textMsgs = ['退票']
-        self.clickEvents = [CustomWeChatView.event_keys['book_header'] + '999999']
         for i in range(1, 8):
             self.textMsgs.append('退票 ' + str(i))
 
-        # clickEvents => 用户一般可能点击事件
-
         # 活动，此处如果修改注意相应的textMsgs也要修改
         # 取消
-        act = Activity.objects.create(name='1', key='abcd', description='abcde', start_time='2016-06-03 13:00:00',
+        Activity.objects.create(name='1', key='abcd', description='abcde', start_time='2016-06-03 13:00:00',
                                       end_time='2016-06-03 13:00:00',
                                       place='aaa', book_start='2016-06-03 13:00:00', book_end='2016-06-03 13:00:00',
                                       total_tickets=100, pic_url='http',
                                       remain_tickets=50, status=Activity.STATUS_DELETED)
-        self.clickEvents.append(CustomWeChatView.event_keys['book_header'] + str(act.id))
 
         # 未发布
-        act = Activity.objects.create(name='2', key='abcd', description='abcde', start_time='2018-06-03 13:00:00',
+        Activity.objects.create(name='2', key='abcd', description='abcde', start_time='2018-06-03 13:00:00',
                                       end_time='2019-06-04 13:00:00',
                                       place='aaa', book_start='2018-06-03 13:00:00', book_end='2019-06-04 13:00:00',
                                       total_tickets=100, pic_url='http',
                                       remain_tickets=50, status=Activity.STATUS_SAVED)
-        self.clickEvents.append(CustomWeChatView.event_keys['book_header'] + str(act.id))
         # 未开始
-        act = Activity.objects.create(name='3', key='abcd', description='abcde', start_time='2018-06-03 13:00:00',
+        Activity.objects.create(name='3', key='abcd', description='abcde', start_time='2018-06-03 13:00:00',
                                       end_time='2019-06-04 13:00:00',
                                       place='aaa', book_start='2019-06-03 13:00:00', book_end='2019-06-04 13:00:00',
                                       total_tickets=100, pic_url='http',
                                       remain_tickets=50, status=Activity.STATUS_PUBLISHED)
-        self.clickEvents.append(CustomWeChatView.event_keys['book_header'] + str(act.id))
         # 已结束
-        act = Activity.objects.create(name='4', key='abcd', description='abcde', start_time='2018-06-03 13:00:00',
+        Activity.objects.create(name='4', key='abcd', description='abcde', start_time='2018-06-03 13:00:00',
                                       end_time='2019-06-04 13:00:00',
                                       place='aaa', book_start='2018-06-03 13:00:00', book_end='2018-06-04 13:00:00',
                                       total_tickets=100, pic_url='http',
                                       remain_tickets=50, status=Activity.STATUS_PUBLISHED)
-        self.clickEvents.append(CustomWeChatView.event_keys['book_header'] + str(act.id))
         # 未购票
-        act = Activity.objects.create(name='5', key='abcd', description='abcde', start_time='2018-06-03 13:00:00',
+        Activity.objects.create(name='5', key='abcd', description='abcde', start_time='2018-06-03 13:00:00',
                                       end_time='2019-06-04 13:00:00',
                                       place='aaa', book_start='2018-06-03 13:00:00', book_end='2019-06-04 13:00:00',
                                       total_tickets=100, pic_url='http',
                                       remain_tickets=0, status=Activity.STATUS_PUBLISHED)
-        self.clickEvents.append(CustomWeChatView.event_keys['book_header'] + str(act.id))
         # 设置为已退票
         self.refund_name = 6
         # 已退票
-        act = Activity.objects.create(name=str(self.refund_name), key='abcd', description='abcde',
+        Activity.objects.create(name=str(self.refund_name), key='abcd', description='abcde',
                                       start_time='2018-06-03 13:00:00',
                                       end_time='2019-06-04 13:00:00',
                                       place='aaa', book_start='2018-06-03 13:00:00', book_end='2019-06-04 13:00:00',
                                       total_tickets=100, pic_url='http',
                                       remain_tickets=50, status=Activity.STATUS_PUBLISHED)
-        self.clickEvents.append(CustomWeChatView.event_keys['book_header'] + str(act.id))
         # 设置为已使用过票
         self.used_name = 7
         # 已使用过票
-        act = Activity.objects.create(name=str(self.used_name), key='abcd', description='abcde',
+        Activity.objects.create(name=str(self.used_name), key='abcd', description='abcde',
                                       start_time='2018-06-03 13:00:00',
                                       end_time='2019-06-04 13:00:00',
                                       place='aaa', book_start='2018-06-03 13:00:00', book_end='2019-06-04 13:00:00',
                                       total_tickets=100, pic_url='http',
                                       remain_tickets=50, status=Activity.STATUS_PUBLISHED)
-        self.clickEvents.append(CustomWeChatView.event_keys['book_header'] + str(act.id))
 
     # 抢票
     def book_ticket(self, user, act_name):
+        activity = Activity.objects.filter(name=act_name).first()
         Ticket.objects.create(student_id=str(user.student_id), unique_id=str(random.randint(0, 9999999)),
-                              activity=Activity.objects.get(name=act_name),
+                              activity=activity,
                               status=Ticket.STATUS_VALID)
+        activity.remain_tickets -= 1
+        activity.save()
 
     # 使用票
     def use_ticket(self, user, act_name):
@@ -1017,6 +1016,10 @@ class TestRefundTicket(TestCase):
         else:
             return False
 
+    def refund_success(self, content):
+        pattern = '您已成功退票！'
+        return content.find(pattern) != -1
+
     def test_text(self):
         users = User.objects.all()
 
@@ -1047,3 +1050,30 @@ class TestRefundTicket(TestCase):
                 else:
                     self.assertEqual(self.map_ticket(content, type), True)
                 type += 1
+
+        Activity.objects.create(name=str(len(self.textMsgs) + 1), key='abcd', description='abcde',
+                                start_time='2018-06-03 13:00:00',
+                                end_time='2019-06-04 13:00:00',
+                                place='aaa', book_start='2018-06-03 13:00:00', book_end='2019-06-04 13:00:00',
+                                total_tickets=100, pic_url='http',
+                                remain_tickets=50, status=Activity.STATUS_PUBLISHED)
+        msg = "退票 " + str(len(self.textMsgs) + 1)
+        for user in users:
+            if user.student_id:
+                self.book_ticket(user, str(len(self.textMsgs) + 1))
+            fromUser = user.open_id
+            curTime = str(getTimeStamp(datetime.datetime.now()))
+            msgId = str(random.randint(0, 99999)) + curTime
+            data = getTextXml(fromUser, curTime, msg, msgId)
+
+            response = self.client.post(
+                path='/wechat/',
+                content_type='application/xml',
+                data=data
+            )
+
+            content = str(response.content.decode('utf-8'))
+            if not user.student_id:
+                self.assertEqual(self.is_unbind(content), True)
+            else:
+                self.assertEqual(self.refund_success(content), True, Activity.objects.get(name=str(len(self.textMsgs) + 1)))

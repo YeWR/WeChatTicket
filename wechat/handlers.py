@@ -54,7 +54,7 @@ class UnbindOrUnsubscribeHandler(WeChatHandler):
         if not self.user or not self.user.student_id:
             return self.reply_text('对不起，您还没有绑定，不能解绑。')
         else:
-            self.user.student_id = ''
+            self.user.student_id = None
             self.user.save()
             return self.reply_text(self.get_message('unbind_account'))
 
@@ -180,7 +180,7 @@ class BookTicketHandler(WeChatHandler):
                 # >>> 抢票 XXXX
                 query = self.input['Content'][3:]
                 # TODO：似乎不用加锁这里
-                activity = Activity.objects.filter(Q(name=query) | Q(key=query)).first()
+                activity = Activity.objects.filter(name=query).first()
             # 点击抢票
             elif self.is_event_book_click(self.view.event_keys['book_header']):
                 id = int(self.input['EventKey'].split('_')[-1])
@@ -270,7 +270,7 @@ class RefundTicketHandler(WeChatHandler):
             # >>> 退票 XXXX
             # TODO：似乎不用加锁这里
             query = self.input['Content'][3:]
-            activity = Activity.objects.filter(Q(name=query) | Q(key=query)).first()
+            activity = Activity.objects.filter(name=query).first()
 
             # 当前时间戳
             currentTime = self.getTimeStamp(datetime.datetime.now())
