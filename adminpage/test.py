@@ -55,7 +55,7 @@ class ActiListGetSucc(TestCase):
     def test_acti_get_succ(self):
         s = Activity(name='11111', key='11', description='aaa', start_time=timezone.now(),
                      end_time=timezone.now(), place='ss', book_end=timezone.now(),
-                     book_start=timezone.now(), total_tickets='123', status='1', pic_url='sss', remain_tickets='1')
+                     book_start=timezone.now(), total_tickets='123', status=Activity.STATUS_PUBLISHED, pic_url='sss', remain_tickets='1')
         s.save()
         models.User.objects.create_user(username='wu', email="dui_zhang@163.com", password='1234')
         c.login(username='wu', password='1234')
@@ -72,7 +72,7 @@ class ActiDeleteSucc(TestCase):
     def test_acti_del_succ(self):
         s = Activity(name='11111', key='11', description='aaa', start_time=timezone.now(),
                      end_time=timezone.now(), place='ss', book_end=timezone.now(),
-                     book_start=timezone.now(), total_tickets='123', status='1', pic_url='sss', remain_tickets='1')
+                     book_start=timezone.now(), total_tickets='123', status=Activity.STATUS_PUBLISHED, pic_url='sss', remain_tickets='1')
         s.save()
         name_test = s.name
         models.User.objects.create_user(username='wu', email="dui_zhang@163.com", password='1234')
@@ -82,7 +82,7 @@ class ActiDeleteSucc(TestCase):
         self.assertEqual(mess['code'], 0)
         self.assertEqual(mess['msg'], '')
         t = Activity.objects.filter(name=name_test)
-        self.assertEqual(t[0].status, -1)
+        self.assertEqual(t[0].status, Activity.STATUS_DELETED)
 
 
 class ActiCreateSucc(TestCase):
@@ -91,14 +91,14 @@ class ActiCreateSucc(TestCase):
         tmp = {'name': '111', 'key': 11, 'place': 'ss', 'description': 'ss', 'picUrl': 'ss',
                'startTime': timezone.now(), 'endTime': timezone.now(),
                'bookStart': timezone.now(), 'bookEnd': timezone.now(),
-               'totalTickets': 'aaa', 'status': '112', 'remainTickets': '12'}
+               'totalTickets': 'aaa', 'status': Activity.STATUS_PUBLISHED, 'remainTickets': '12'}
         models.User.objects.create_user(username='wu', email="dui_zhang@163.com", password='1234')
         c.login(username='wu', password='1234')
         resp = c.post('/api/a/activity/create',
                       {'name': '111', 'key': '11', 'place': 'ss', 'description': 'ss', 'picUrl': 'ss',
                        'startTime': str(timezone.now()), 'endTime': str(timezone.now()),
                        'bookStart': str(timezone.now()), 'bookEnd': str(timezone.now()),
-                       'totalTickets': '123', 'status': '112'})
+                       'totalTickets': '123', 'status': Activity.STATUS_PUBLISHED})
         mess = json.loads(str(resp.content, encoding="utf-8"))
         self.assertEqual(mess['code'], 0)
         self.assertEqual(mess['msg'], '')
@@ -122,7 +122,7 @@ class ActiDetailTest(TestCase):
     def setUp(self):
         s = Activity(name='11111', key='11', description='aaa', start_time=timezone.now(),
                      end_time=timezone.now(), place='ss', book_end=timezone.now(),
-                     book_start=timezone.now(), total_tickets='123', status='1', pic_url='sss', remain_tickets='1')
+                     book_start=timezone.now(), total_tickets='123', status=Activity.STATUS_PUBLISHED, pic_url='sss', remain_tickets='1')
         s.save()
 
     def test_acti_det_get_succ(self):
@@ -158,7 +158,7 @@ class ActiDetailTest(TestCase):
                                                  'bookStart': s.book_start,
                                                  'bookEnd': s.book_end,
                                                  'totalTickets': '123',
-                                                 'status': '1'})
+                                                 'status': Activity.STATUS_PUBLISHED})
         mess = json.loads(str(resp.content, encoding="utf-8"))
         self.assertEqual(mess['code'], 0)
         self.assertEqual(mess['msg'], '')
@@ -180,7 +180,7 @@ class ActiDetailTest(TestCase):
                                                  'bookStart': timezone.now(),
                                                  'bookEnd': s.book_end,
                                                  'totalTickets': '123',
-                                                 'status': '1'})
+                                                 'status': Activity.STATUS_PUBLISHED})
         mess = json.loads(str(resp.content, encoding="utf-8"))
         self.assertEqual(mess['code'], 0)
         self.assertEqual(mess['msg'], '')
@@ -204,7 +204,7 @@ class ActiDetailTest(TestCase):
                                                  'bookStart': s.book_start,
                                                  'bookEnd': 'ssss',
                                                  'totalTickets': '2333333',
-                                                 'status': '1'})
+                                                 'status': Activity.STATUS_PUBLISHED})
         mess = json.loads(str(resp.content, encoding="utf-8"))
         self.assertEqual(mess['code'], 0)
         self.assertEqual(mess['msg'], '')
@@ -224,7 +224,7 @@ class ActiMenuTest(TestCase):
         for i in range(6):
             s.append(Activity(name=str(i), key='11', description='aaa', start_time=timezone.now(),
                               end_time=timezone.now(), place='ss', book_end=timezone.now(),
-                              book_start=timezone.now(), total_tickets='123', status='1', pic_url='sss',
+                              book_start=timezone.now(), total_tickets='123', status=Activity.STATUS_PUBLISHED, pic_url='sss',
                               remain_tickets='1'))
             s[i].save()
         models.User.objects.create_user(username='wu', email="dui_zhang@163.com", password='1234')
@@ -242,7 +242,7 @@ class ActiMenuTest(TestCase):
         for i in range(6):
             s.append(Activity(name=str(i), key='11', description='aaa', start_time=timezone.now(),
                               end_time=timezone.now(), place='ss', book_end=timezone.now(),
-                              book_start=timezone.now(), total_tickets='123', status='1', pic_url='sss',
+                              book_start=timezone.now(), total_tickets='123', status=Activity.STATUS_PUBLISHED, pic_url='sss',
                               remain_tickets='1'))
             s[i].save()
         resp = c.get('/api/a/activity/menu/', {'arg': 'useless'})
@@ -255,7 +255,7 @@ class ActiMenuTest(TestCase):
         for i in range(6):
             s.append(Activity(name=str(i), key='11', description='aaa', start_time=timezone.now(),
                               end_time=timezone.now(), place='ss', book_end=timezone.now(),
-                              book_start=timezone.now(), total_tickets='123', status='1', pic_url='sss',
+                              book_start=timezone.now(), total_tickets='123', status=Activity.STATUS_PUBLISHED, pic_url='sss',
                               remain_tickets='1'))
             s[i].save()
         resp = c.post('/api/a/activity/menu/', {'id': [1, 2, 3, 4]})
@@ -271,7 +271,7 @@ class CheckInTest(TestCase):
             u.save()
         a = Activity(name=str(1), key='11', description='aaa', start_time=timezone.now(),
                      end_time=timezone.now(), place='ss', book_end=timezone.now(),
-                     book_start=timezone.now(), total_tickets='123', status='1', pic_url='sss',
+                     book_start=timezone.now(), total_tickets='123', status=Activity.STATUS_PUBLISHED, pic_url='sss',
                      remain_tickets='1')
         a.save()
 
@@ -279,7 +279,7 @@ class CheckInTest(TestCase):
         a = Activity.objects.filter(name='1').first()
         t = []
         for i in range(6):
-            t.append(Ticket(id=i + 1, student_id=str(i), unique_id=str(i + 1), status=1, activity_id=a.id))
+            t.append(Ticket(id=i + 1, student_id=str(i), unique_id=str(i + 1), status=Ticket.STATUS_VALID, activity_id=a.id))
             t[i].save()
         resp = c.post('/api/a/activity/checkin/', {'actId': 0, 'studentId': 1})
         mess = json.loads(str(resp.content, encoding="utf-8"))
@@ -304,7 +304,7 @@ class CheckInTest(TestCase):
         a = Activity.objects.filter(name='1').first()
         t = []
         for i in range(6):
-            t.append(Ticket(id=i + 1, student_id=str(i), unique_id=str(i + 1), status=1, activity_id=a.id))
+            t.append(Ticket(id=i + 1, student_id=str(i), unique_id=str(i + 1), status=Ticket.STATUS_VALID, activity_id=a.id))
             t[i].save()
         models.User.objects.create_user(username='wu', email="dui_zhang@163.com", password='1234')
         c.login(username='wu', password='1234')
