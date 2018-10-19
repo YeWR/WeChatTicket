@@ -351,7 +351,6 @@ def ActiChange(TestCase):
                      status=Activity.STATUS_SAVED, pic_url='sss',
                      remain_tickets='1')
         s.save()
-        print ("___________________________________",s.status)
         models.User.objects.create_user(username='wu', email="dui_zhang@163.com", password='1234')
         c.login(username='wu', password='1234')
         resp = c.post('/api/a/activity/detail', {'id': s.id,
