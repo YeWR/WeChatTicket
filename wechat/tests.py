@@ -796,7 +796,6 @@ class TestBookTicket(TestCase):
 
                 # 剩余票数
                 remain_tickets_previous = act.remain_tickets
-                print("previous: ", act.remain_tickets, act.name, act.key)
 
                 response = self.client.post(
                     path='/wechat/',
@@ -812,7 +811,6 @@ class TestBookTicket(TestCase):
                     # 剩余票数
                     act = Activity.objects.filter(name=str(len(self.textMsgs) + 1)).first()
                     remain_tickets_current = act.remain_tickets
-                    print("current: ", act.remain_tickets, act.name, act.key)
 
                     self.assertEqual(remain_tickets_current, remain_tickets_previous - 1)
                     remain_tickets_previous = remain_tickets_current
@@ -877,7 +875,6 @@ class TestBookTicket(TestCase):
 
                 # 剩余票数
                 remain_tickets_previous = act.remain_tickets
-                print("previous: ", act.remain_tickets, act.name, act.key)
 
                 response = self.client.post(
                     path='/wechat/',
@@ -899,7 +896,6 @@ class TestBookTicket(TestCase):
                     # 剩余票数
                     act = Activity.objects.filter(name=str(len(self.clickEvents) + 1)).first()
                     remain_tickets_current = act.remain_tickets
-                    print("current: ", act.remain_tickets, act.name, act.key)
 
                     self.assertEqual(remain_tickets_current, remain_tickets_previous - 1)
                     remain_tickets_previous = remain_tickets_current
@@ -1123,7 +1119,6 @@ class TestRefundTicket(TestCase):
             # 剩余票数
             act = Activity.objects.filter(name=str(len(self.textMsgs) + 1)).first()
             remain_tickets_previous = act.remain_tickets
-            print("previous: ", act.remain_tickets, act.name, act.key)
 
             response = self.client.post(
                 path='/wechat/',
