@@ -8,6 +8,7 @@ class UserBindTest(TestCase):
     def testUserBind(self):
         User.objects.create(open_id='abc')
         User.objects.create(open_id='a', student_id='2016013224')
+        User.objects.create(open_id='def')
         c = Client()
         resp = c.get("/api/u/user/bind", {'openid': 'a'})
         mess = json.loads(str(resp.content, encoding="utf-8"))
@@ -31,7 +32,8 @@ class UserBindTest(TestCase):
         #should raise User not found
         resp = c.get("/api/u/user/bind", {'openid': 'def'})
         mess = json.loads(str(resp.content, encoding="utf-8"))
-        self.assertEqual(mess['code'], 2)
+        self.assertEqual(mess['code'], 0)
+        self.assertEqual(mess['data'], '')
 
 class ActivityDetailTest(TestCase):
 
