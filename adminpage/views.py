@@ -172,7 +172,7 @@ class ActivityDetail(APIView):
             with transaction.atomic():
                 self.check_input('id', 'description', 'status', 'picUrl', 'place', 'name', 'startTime', 'endTime',
                                  'bookStart', 'bookEnd', 'totalTickets')
-                item = Activity.objects.select_for_update().filter(pk=self.input['id']).first()
+                item = Activity.objects.select_for_update().filter(id=self.input['id']).first()
                 # save to forbidden the type change of item
                 start_time = item.start_time
                 end_time = item.end_time
@@ -193,15 +193,18 @@ class ActivityDetail(APIView):
                     # change data
                     item.pic_url = self.input['picUrl']
 
-                if self.isFirstEarly(int(time.time()), self.getTimeStamp(end_time)):
-                    item.start_time = self.input['startTime']
-                    item.end_time = self.input['endTime']
-                if item.status == 0:
+                if (item.status) == Activity.STATUS_SAVED:
                     item.book_start = self.input['bookStart']
                     item.name = self.input['name']
                     item.place = self.input['place']
+
+                if self.isFirstEarly(int(time.time()), self.getTimeStamp(end_time)):
+                    item.start_time = self.input['startTime']
+                    item.end_time = self.input['endTime']
+
                 if self.isFirstEarly(int(time.time()), self.getTimeStamp(start_time)):
                     item.book_end = self.input['bookEnd']
+
                 if self.isFirstEarly(int(time.time()), self.getTimeStamp(book_start)):
                     item.total_tickets = self.input['totalTickets']
 

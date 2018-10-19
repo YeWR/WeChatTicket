@@ -292,28 +292,6 @@ class ActiDetailTest(TestCase):
         self.assertEqual(mess['code'], 4)
         self.assertEqual(mess['msg'], '')
 
-    def test_acti_det_mod_succ(self):
-        s = Activity.objects.filter(name='11111').first()
-        models.User.objects.create_user(username='wu', email="dui_zhang@163.com", password='1234')
-        c.login(username='wu', password='1234')
-        resp = c.post('/api/a/activity/detail', {'id': s.id,
-                                                 'name': '11111',
-                                                 'place': 'ss',
-                                                 'description': 'ss',
-                                                 'picUrl': 'to test',
-                                                 'startTime': s.start_time,
-                                                 'endTime': s.end_time,
-                                                 'bookStart': s.book_start,
-                                                 'bookEnd': s.book_end,
-                                                 'totalTickets': '123',
-                                                 'status': Activity.STATUS_PUBLISHED})
-        mess = json.loads(str(resp.content, encoding="utf-8"))
-        self.assertEqual(mess['code'], 0)
-        self.assertEqual(mess['msg'], '')
-        # change
-        t = Activity.objects.filter(pk=s.id).first()
-        self.assertEqual(t.pic_url, 'to test')
-
     def test_acti_det_mod_statusFail(self):
         s = Activity.objects.filter(name='11111').first()
         models.User.objects.create_user(username='wu', email="dui_zhang@163.com", password='1234')
@@ -364,6 +342,38 @@ class ActiDetailTest(TestCase):
         self.assertEqual(t.end_time, s.end_time)
         self.assertEqual(t.book_end, s.book_end)
 
+def ActiChange(TestCase):
+    def test_acti_det_mod_succ(self):
+        s = Activity(name='11111', key='11', description='aaa',
+                     start_time=timezone.now(), end_time=timezone.now(),
+                     place='ss', book_end=timezone.now(),
+                     book_start=timezone.now(), total_tickets='123',
+                     status=Activity.STATUS_SAVED, pic_url='sss',
+                     remain_tickets='1')
+        s.save()
+        print ("___________________________________",s.status)
+        models.User.objects.create_user(username='wu', email="dui_zhang@163.com", password='1234')
+        c.login(username='wu', password='1234')
+        resp = c.post('/api/a/activity/detail', {'id': s.id,
+                                                 'name': 'test',
+                                                 'place': 'test',
+                                                 'description': 'ss',
+                                                 'picUrl': 'to test',
+                                                 'startTime': s.start_time,
+                                                 'endTime': s.end_time,
+                                                 'bookStart': "test",
+                                                 'bookEnd': s.book_end,
+                                                 'totalTickets': '123',
+                                                 'status': str(Activity.STATUS_SAVED)})
+        mess = json.loads(str(resp.content, encoding="utf-8"))
+        self.assertEqual(mess['code'], 0)
+        self.assertEqual(mess['msg'], '')
+        # change
+        t = Activity.objects.filter(id=s.id).first()
+        self.assertEqual(t.pic_url, 'to test')
+        self.assertEqual(t.place, 'test')
+        self.assertEqual(t.name, 'test')
+        self.assertEqual(t.book_start, 'test')
 
 class ActiMenuTest(TestCase):
 
