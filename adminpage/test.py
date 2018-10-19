@@ -185,6 +185,24 @@ class ActiCreateSucc(TestCase):
         t = Activity.objects.filter(pk=mess['data'])
         self.assertEqual(t[0].name, tmp['name'])
 
+    def test_acti_create_fail_repeat(self):
+        a = Activity(name=str(1), key='11', description='aaa', start_time=timezone.now(),
+                 end_time=timezone.now(), place='ss', book_end=timezone.now(),
+                 book_start=timezone.now(), total_tickets='123', status=Activity.STATUS_PUBLISHED,
+                 pic_url='sss',
+                 remain_tickets='1')
+        a.save()
+        models.User.objects.create_user(username='wu', email="dui_zhang@163.com", password='1234')
+        c.login(username='wu', password='1234')
+        resp = c.post('/api/a/activity/create',
+                      {'name': a.name, 'key': '11', 'place': 'ss',
+                       'description': 'ss', 'picUrl': 'ss',
+                       'startTime': a.start_time, 'endTime': str(timezone.now()),
+                       'bookStart': str(timezone.now()), 'bookEnd': str(timezone.now()),
+                       'totalTickets': '123', 'status': Activity.STATUS_PUBLISHED})
+        mess = json.loads(str(resp.content, encoding="utf-8"))
+        self.assertEqual(mess['code'], 2)
+        self.assertEqual(mess['msg'], 'already have this activity')
 
 class ImageUpFail(TestCase):
 

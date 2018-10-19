@@ -101,6 +101,9 @@ class ActivityCreate(APIView):
         if self.request.user.is_authenticated():
             self.check_input('name', 'key', 'place', 'description', 'picUrl', 'startTime', 'endTime', 'bookStart',
                              'bookEnd', 'totalTickets', 'status')
+            check = Activity.objects.filter(name=self.input['name'],start_time=self.input['startTime']).first()
+            if check is not None:
+                raise LogicError('already have this activity')
             if len(self.input['picUrl']) > 256:
                 raise LogicError('picUrl is too long, please upload local picture')
             act = Activity(name=self.input['name'], key=self.input['key'], place=self.input['place'],
@@ -203,6 +206,7 @@ class ActivityDetail(APIView):
                     item.total_tickets = self.input['totalTickets']
 
                 item.save()
+
         else:
             raise LoginError('')
 
