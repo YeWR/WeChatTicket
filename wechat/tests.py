@@ -651,7 +651,9 @@ class TestBookTicket(TestCase):
         activity = Activity.objects.filter(name=act_name).first()
         ticket = Ticket.objects.filter(student_id=user.student_id, activity=activity).first()
         ticket.status = Ticket.STATUS_CANCELLED
+        activity.remain_tickets += 1
         ticket.save()
+        activity.save()
 
     # 未绑用户
     def is_unbind(self, content):
@@ -748,6 +750,7 @@ class TestBookTicket(TestCase):
     def test_text(self):
         users = User.objects.all()
 
+        # 购票失败
         for user in users:
             type = 0
             if user.student_id:
@@ -773,13 +776,14 @@ class TestBookTicket(TestCase):
                     self.assertEqual(self.map_ticket(content, type), True)
                 type += 1
 
-        # 　购买新票
-        Activity.objects.create(name=str(len(self.textMsgs) + 1), key='abcd', description='abcde',
-                                start_time='2018-06-03 13:00:00',
-                                end_time='2019-06-04 13:00:00',
-                                place='aaa', book_start='2018-06-03 13:00:00', book_end='2019-06-04 13:00:00',
-                                total_tickets=100, pic_url='http',
-                                remain_tickets=50, status=Activity.STATUS_PUBLISHED)
+        # 购票成功
+        # 购买新票
+        act = Activity.objects.create(name=str(len(self.textMsgs) + 1), key='abcd', description='abcde',
+                                      start_time='2018-06-03 13:00:00',
+                                      end_time='2019-06-04 13:00:00',
+                                      place='aaa', book_start='2018-06-03 13:00:00', book_end='2019-06-04 13:00:00',
+                                      total_tickets=100, pic_url='http',
+                                      remain_tickets=50, status=Activity.STATUS_PUBLISHED)
         msg = "抢票 " + str(len(self.textMsgs) + 1)
         for user in users:
             # 0->新票
@@ -789,6 +793,10 @@ class TestBookTicket(TestCase):
                 curTime = str(getTimeStamp(datetime.datetime.now()))
                 msgId = str(random.randint(0, 99999)) + curTime
                 data = getTextXml(fromUser, curTime, msg, msgId)
+
+                # 剩余票数
+                remain_tickets_previous = act.remain_tickets
+                print("previous: ", act.remain_tickets, act.name, act.key)
 
                 response = self.client.post(
                     path='/wechat/',
@@ -801,15 +809,31 @@ class TestBookTicket(TestCase):
                     self.assertEqual(self.is_unbind(content), True)
                 elif not flag:
                     self.assertEqual(self.book_success(content), True)
+                    # 剩余票数
+                    act = Activity.objects.filter(name=str(len(self.textMsgs) + 1)).first()
+                    remain_tickets_current = act.remain_tickets
+                    print("current: ", act.remain_tickets, act.name, act.key)
+
+                    self.assertEqual(remain_tickets_current, remain_tickets_previous - 1)
+                    remain_tickets_previous = remain_tickets_current
                     # 取消票
                     self.cancle_ticket(user, str(len(self.textMsgs) + 1))
+                    act = Activity.objects.filter(name=str(len(self.textMsgs) + 1)).first()
+                    # 剩余票数
+                    remain_tickets_current = act.remain_tickets
+                    self.assertEqual(remain_tickets_current, remain_tickets_previous + 1)
                 else:
                     # 重购票
                     self.assertEqual(self.rebook_success(content), True)
+                    # 剩余票数
+                    act = Activity.objects.filter(name=str(len(self.textMsgs) + 1)).first()
+                    remain_tickets_current = act.remain_tickets
+                    self.assertEqual(remain_tickets_current, remain_tickets_previous - 1)
 
     def test_event_click(self):
         users = User.objects.all()
 
+        # 购票失败
         for user in users:
             type = 0
             if user.student_id:
@@ -834,7 +858,8 @@ class TestBookTicket(TestCase):
                     self.assertEqual(self.map_ticket(content, type), True)
                 type += 1
 
-        # 　购买新票
+        # 购票成功
+        # 购买新票
         act = Activity.objects.create(name=str(len(self.clickEvents) + 1), key='abcd', description='abcde',
                                       start_time='2018-06-03 13:00:00',
                                       end_time='2019-06-04 13:00:00',
@@ -850,6 +875,16 @@ class TestBookTicket(TestCase):
                 curTime = str(getTimeStamp(datetime.datetime.now()))
                 data = getClickXml(fromUser, curTime, clickEvent)
 
+                # 剩余票数
+                remain_tickets_previous = act.remain_tickets
+                print("previous: ", act.remain_tickets, act.name, act.key)
+
+                response = self.client.post(
+                    path='/wechat/',
+                    content_type='application/xml',
+                    data=data
+                )
+
                 response = self.client.post(
                     path='/wechat/',
                     content_type='application/xml',
@@ -861,11 +896,26 @@ class TestBookTicket(TestCase):
                     self.assertEqual(self.is_unbind(content), True)
                 elif not flag:
                     self.assertEqual(self.book_success(content), True)
+                    # 剩余票数
+                    act = Activity.objects.filter(name=str(len(self.clickEvents) + 1)).first()
+                    remain_tickets_current = act.remain_tickets
+                    print("current: ", act.remain_tickets, act.name, act.key)
+
+                    self.assertEqual(remain_tickets_current, remain_tickets_previous - 1)
+                    remain_tickets_previous = remain_tickets_current
                     # 取消票
                     self.cancle_ticket(user, str(len(self.clickEvents) + 1))
+                    act = Activity.objects.filter(name=str(len(self.clickEvents) + 1)).first()
+                    # 剩余票数
+                    remain_tickets_current = act.remain_tickets
+                    self.assertEqual(remain_tickets_current, remain_tickets_previous + 1)
                 else:
                     # 重购票
                     self.assertEqual(self.rebook_success(content), True)
+                    # 剩余票数
+                    act = Activity.objects.filter(name=str(len(self.clickEvents) + 1)).first()
+                    remain_tickets_current = act.remain_tickets
+                    self.assertEqual(remain_tickets_current, remain_tickets_previous - 1)
 
 
 class TestRefundTicket(TestCase):
@@ -887,53 +937,53 @@ class TestRefundTicket(TestCase):
         # 活动，此处如果修改注意相应的textMsgs也要修改
         # 取消
         Activity.objects.create(name='1', key='abcd', description='abcde', start_time='2016-06-03 13:00:00',
-                                      end_time='2016-06-03 13:00:00',
-                                      place='aaa', book_start='2016-06-03 13:00:00', book_end='2016-06-03 13:00:00',
-                                      total_tickets=100, pic_url='http',
-                                      remain_tickets=50, status=Activity.STATUS_DELETED)
+                                end_time='2016-06-03 13:00:00',
+                                place='aaa', book_start='2016-06-03 13:00:00', book_end='2016-06-03 13:00:00',
+                                total_tickets=100, pic_url='http',
+                                remain_tickets=50, status=Activity.STATUS_DELETED)
 
         # 未发布
         Activity.objects.create(name='2', key='abcd', description='abcde', start_time='2018-06-03 13:00:00',
-                                      end_time='2019-06-04 13:00:00',
-                                      place='aaa', book_start='2018-06-03 13:00:00', book_end='2019-06-04 13:00:00',
-                                      total_tickets=100, pic_url='http',
-                                      remain_tickets=50, status=Activity.STATUS_SAVED)
+                                end_time='2019-06-04 13:00:00',
+                                place='aaa', book_start='2018-06-03 13:00:00', book_end='2019-06-04 13:00:00',
+                                total_tickets=100, pic_url='http',
+                                remain_tickets=50, status=Activity.STATUS_SAVED)
         # 未开始
         Activity.objects.create(name='3', key='abcd', description='abcde', start_time='2018-06-03 13:00:00',
-                                      end_time='2019-06-04 13:00:00',
-                                      place='aaa', book_start='2019-06-03 13:00:00', book_end='2019-06-04 13:00:00',
-                                      total_tickets=100, pic_url='http',
-                                      remain_tickets=50, status=Activity.STATUS_PUBLISHED)
+                                end_time='2019-06-04 13:00:00',
+                                place='aaa', book_start='2019-06-03 13:00:00', book_end='2019-06-04 13:00:00',
+                                total_tickets=100, pic_url='http',
+                                remain_tickets=50, status=Activity.STATUS_PUBLISHED)
         # 已结束
         Activity.objects.create(name='4', key='abcd', description='abcde', start_time='2018-06-03 13:00:00',
-                                      end_time='2019-06-04 13:00:00',
-                                      place='aaa', book_start='2018-06-03 13:00:00', book_end='2018-06-04 13:00:00',
-                                      total_tickets=100, pic_url='http',
-                                      remain_tickets=50, status=Activity.STATUS_PUBLISHED)
+                                end_time='2019-06-04 13:00:00',
+                                place='aaa', book_start='2018-06-03 13:00:00', book_end='2018-06-04 13:00:00',
+                                total_tickets=100, pic_url='http',
+                                remain_tickets=50, status=Activity.STATUS_PUBLISHED)
         # 未购票
         Activity.objects.create(name='5', key='abcd', description='abcde', start_time='2018-06-03 13:00:00',
-                                      end_time='2019-06-04 13:00:00',
-                                      place='aaa', book_start='2018-06-03 13:00:00', book_end='2019-06-04 13:00:00',
-                                      total_tickets=100, pic_url='http',
-                                      remain_tickets=0, status=Activity.STATUS_PUBLISHED)
+                                end_time='2019-06-04 13:00:00',
+                                place='aaa', book_start='2018-06-03 13:00:00', book_end='2019-06-04 13:00:00',
+                                total_tickets=100, pic_url='http',
+                                remain_tickets=0, status=Activity.STATUS_PUBLISHED)
         # 设置为已退票
         self.refund_name = 6
         # 已退票
         Activity.objects.create(name=str(self.refund_name), key='abcd', description='abcde',
-                                      start_time='2018-06-03 13:00:00',
-                                      end_time='2019-06-04 13:00:00',
-                                      place='aaa', book_start='2018-06-03 13:00:00', book_end='2019-06-04 13:00:00',
-                                      total_tickets=100, pic_url='http',
-                                      remain_tickets=50, status=Activity.STATUS_PUBLISHED)
+                                start_time='2018-06-03 13:00:00',
+                                end_time='2019-06-04 13:00:00',
+                                place='aaa', book_start='2018-06-03 13:00:00', book_end='2019-06-04 13:00:00',
+                                total_tickets=100, pic_url='http',
+                                remain_tickets=50, status=Activity.STATUS_PUBLISHED)
         # 设置为已使用过票
         self.used_name = 7
         # 已使用过票
         Activity.objects.create(name=str(self.used_name), key='abcd', description='abcde',
-                                      start_time='2018-06-03 13:00:00',
-                                      end_time='2019-06-04 13:00:00',
-                                      place='aaa', book_start='2018-06-03 13:00:00', book_end='2019-06-04 13:00:00',
-                                      total_tickets=100, pic_url='http',
-                                      remain_tickets=50, status=Activity.STATUS_PUBLISHED)
+                                start_time='2018-06-03 13:00:00',
+                                end_time='2019-06-04 13:00:00',
+                                place='aaa', book_start='2018-06-03 13:00:00', book_end='2019-06-04 13:00:00',
+                                total_tickets=100, pic_url='http',
+                                remain_tickets=50, status=Activity.STATUS_PUBLISHED)
 
     # 抢票
     def book_ticket(self, user, act_name):
@@ -956,7 +1006,9 @@ class TestRefundTicket(TestCase):
         activity = Activity.objects.filter(name=act_name).first()
         ticket = Ticket.objects.filter(student_id=user.student_id, activity=activity).first()
         ticket.status = Ticket.STATUS_CANCELLED
+        activity.remain_tickets += 1
         ticket.save()
+        activity.save()
 
     # 未绑用户
     def is_unbind(self, content):
@@ -1023,6 +1075,7 @@ class TestRefundTicket(TestCase):
     def test_text(self):
         users = User.objects.all()
 
+        # 退票失败
         for user in users:
             type = 0
             if user.student_id:
@@ -1051,12 +1104,13 @@ class TestRefundTicket(TestCase):
                     self.assertEqual(self.map_ticket(content, type), True)
                 type += 1
 
-        Activity.objects.create(name=str(len(self.textMsgs) + 1), key='abcd', description='abcde',
-                                start_time='2018-06-03 13:00:00',
-                                end_time='2019-06-04 13:00:00',
-                                place='aaa', book_start='2018-06-03 13:00:00', book_end='2019-06-04 13:00:00',
-                                total_tickets=100, pic_url='http',
-                                remain_tickets=50, status=Activity.STATUS_PUBLISHED)
+        # 退票成功
+        act = Activity.objects.create(name=str(len(self.textMsgs) + 1), key='abcd', description='abcde',
+                                      start_time='2018-06-03 13:00:00',
+                                      end_time='2019-06-04 13:00:00',
+                                      place='aaa', book_start='2018-06-03 13:00:00', book_end='2019-06-04 13:00:00',
+                                      total_tickets=100, pic_url='http',
+                                      remain_tickets=50, status=Activity.STATUS_PUBLISHED)
         msg = "退票 " + str(len(self.textMsgs) + 1)
         for user in users:
             if user.student_id:
@@ -1065,6 +1119,11 @@ class TestRefundTicket(TestCase):
             curTime = str(getTimeStamp(datetime.datetime.now()))
             msgId = str(random.randint(0, 99999)) + curTime
             data = getTextXml(fromUser, curTime, msg, msgId)
+
+            # 剩余票数
+            act = Activity.objects.filter(name=str(len(self.textMsgs) + 1)).first()
+            remain_tickets_previous = act.remain_tickets
+            print("previous: ", act.remain_tickets, act.name, act.key)
 
             response = self.client.post(
                 path='/wechat/',
@@ -1076,4 +1135,8 @@ class TestRefundTicket(TestCase):
             if not user.student_id:
                 self.assertEqual(self.is_unbind(content), True)
             else:
-                self.assertEqual(self.refund_success(content), True, Activity.objects.get(name=str(len(self.textMsgs) + 1)))
+                self.assertEqual(self.refund_success(content), True)
+                # 剩余票数
+                act = Activity.objects.filter(name=str(len(self.textMsgs) + 1)).first()
+                remain_tickets_current = act.remain_tickets
+                self.assertEqual(remain_tickets_current, remain_tickets_previous + 1)
