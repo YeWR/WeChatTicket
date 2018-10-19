@@ -81,6 +81,7 @@ class BookEmptyHandler(WeChatHandler):
         return self.is_event_click(self.view.event_keys['book_empty'])
 
     def handle(self):
+        print("ggg")
         return self.reply_text(self.get_message('book_empty'))
 
 
@@ -94,6 +95,7 @@ class BookWhatHandler(WeChatHandler):
         # 按照结束事件顺序排列
         activities = Activity.objects.filter(status=Activity.STATUS_PUBLISHED).order_by("end_time")
         if not activities:
+            print("ff")
             return self.reply_text(self.get_message('book_empty'))
         articles = []
         for act in activities:

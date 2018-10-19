@@ -75,7 +75,42 @@ class TestError(TestCase):
 
 
 class TestDefault(TestCase):
-    pass
+
+    def setUp(self):
+        # 设置配置
+        settings.IGNORE_WECHAT_SIGNATURE = True
+
+        # user1 => not bind
+        # user2 => bind
+        User.objects.create(open_id='abc')
+        User.objects.create(open_id='a', student_id='2016013265')
+
+        # textMsgs => 用户一般可能输入(成功)
+        self.textMsgs = ['balabala', 'gg', '抢火车票']
+
+    # 是否返回帮助
+    def is_default(self, content):
+        pattern = '对不起，没有找到您需要的信息:('
+        return content.find(pattern) != -1
+
+    def test_text(self):
+        users = User.objects.all()
+
+        for user in users:
+            for textMsg in self.textMsgs:
+                fromUser = user.open_id
+                curTime = str(getTimeStamp(datetime.datetime.now()))
+                msgId = str(random.randint(0, 99999)) + curTime
+                data = getTextXml(fromUser, curTime, textMsg, msgId)
+
+                response = self.client.post(
+                    path='/wechat/',
+                    content_type='application/xml',
+                    data=data
+                )
+
+                content = str(response.content.decode('utf-8'))
+                self.assertEqual(self.is_default(content), True)
 
 
 class TestHelpOrSubscribe(TestCase):
