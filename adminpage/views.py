@@ -254,10 +254,16 @@ class ActivityCheckin(APIView):
 
     def post(self):
         if self.request.user.is_authenticated():
+            key = ''
+            try:
+                key = self.input['ticket']
+            except :
+                key = self.input['studentId']
+            print(key)
             items = Ticket.objects.filter(activity_id=self.input['actId'])
             try:
                 for item in items:
-                    if item.student_id == self.input['studentId']:
+                    if item.student_id == key or item.unique_id == key:
                         if item.status == Ticket.STATUS_VALID:
                             with transaction.atomic():
                                 if item.status == Ticket.STATUS_VALID:
