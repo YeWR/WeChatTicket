@@ -50,10 +50,10 @@ class WeChatHandler(object):
         ))
 
     def reply_news(self, articles):
-        if len(articles) > 10:
+        if len(articles) > 8:
             self.logger.warn('Reply with %d articles, keep only 10', len(articles))
         return get_template('news.xml').render(self.get_context(
-            Articles=articles[:10]
+            Articles=articles[:8]
         ))
 
     def reply_single_news(self, article):
@@ -70,6 +70,9 @@ class WeChatHandler(object):
         return self.input['MsgType'] == check_type
 
     def is_text(self, *texts):
+        return self.is_msg_type('text') and (self.input['Content'].lower() in texts)
+
+    def is_text_in(self, *texts):
         return self.is_msg_type('text') and (self.input['Content'].split()[0].lower() in texts)
 
     def is_event_click(self, *event_keys):
