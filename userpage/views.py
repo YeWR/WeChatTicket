@@ -92,7 +92,7 @@ class TicketDetail(APIView):
         return{
                 'activityName': ticket.activity.name,
                 'place' : ticket.activity.place,
-                'activityKey': ticket.activity.key,
+                'activityKey': ticket.activity.name,
                 'uniqueId': ticket.unique_id,
                 'startTime':int(ticket.activity.start_time.timestamp()),
                 'endTime':int(ticket.activity.end_time.timestamp()),
