@@ -481,7 +481,7 @@ class CheckInTest(TestCase):
         self.assertEqual((mess['code']), 2)
         self.assertEqual(mess['msg'], '检票失败')
 
-    def test_checkin_succ(self):
+    def test_checkin_succ_stu(self):
         a = Activity.objects.filter(name='1').first()
         t = []
         for i in range(6):
@@ -491,6 +491,22 @@ class CheckInTest(TestCase):
         models.User.objects.create_user(username='wu', email="dui_zhang@163.com", password='1234')
         c.login(username='wu', password='1234')
         resp = c.post('/api/a/activity/checkin/', {'actId': a.id, 'studentId': str(1)})
+        mess = json.loads(str(resp.content, encoding="utf-8"))
+        self.assertEqual((mess['code']), 0)
+        self.assertEqual(mess['msg'], '')
+        m = Ticket.objects.filter(unique_id=mess['data']['ticket']).first()
+        self.assertEqual(m.status, Ticket.STATUS_USED)
+
+    def test_checkin_succ_ticket(self):
+        a = Activity.objects.filter(name='1').first()
+        t = []
+        for i in range(6):
+            t.append(
+                Ticket(id=i + 1, student_id=str(i), unique_id=str(i + 1), status=Ticket.STATUS_VALID, activity_id=a.id))
+            t[i].save()
+        models.User.objects.create_user(username='wu', email="dui_zhang@163.com", password='1234')
+        c.login(username='wu', password='1234')
+        resp = c.post('/api/a/activity/checkin/', {'actId': a.id, 'ticket': str(1)})
         mess = json.loads(str(resp.content, encoding="utf-8"))
         self.assertEqual((mess['code']), 0)
         self.assertEqual(mess['msg'], '')
