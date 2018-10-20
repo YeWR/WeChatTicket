@@ -336,9 +336,6 @@ class TestBookWhat(TestCase):
         User.objects.create(open_id='abc')
         User.objects.create(open_id='a', student_id='2016013265')
 
-        # textMsgs => 用户一般可能输入(成功)
-        self.textMsgs = ['抢啥']
-
         # clickEvents => 用户一般可能点击事件
         self.clickEvents = [CustomWeChatView.event_keys['book_what']]
 
@@ -367,35 +364,6 @@ class TestBookWhat(TestCase):
     def no_activities(self, content):
         pattern = '您好，现在没有推荐的抢票活动哟'
         return content.find(pattern) != -1
-
-    def test_text(self):
-        users = User.objects.all()
-
-        # 活动
-        maxActivities = 2
-        while len(Activity.objects.all()) < maxActivities:
-            # no activity
-            for user in users:
-                for textMsg in self.textMsgs:
-                    fromUser = user.open_id
-                    curTime = str(getTimeStamp(datetime.datetime.now()))
-                    msgId = str(random.randint(0, 99999)) + curTime
-                    data = getTextXml(fromUser, curTime, textMsg, msgId)
-
-                    response = self.client.post(
-                        path='/wechat/',
-                        content_type='application/xml',
-                        data=data
-                    )
-
-                    content = str(response.content.decode('utf-8'))
-                    # 有活动
-                    if Activity.objects.all():
-                        self.assertEqual(self.is_activities(content), True)
-                    else:
-                        self.assertEqual(self.no_activities(content), True)
-            # add activities
-            createActivities(maxActivities - 1)
 
     def test_event_click(self):
         users = User.objects.all()
@@ -438,8 +406,11 @@ class TestCheckTicket(TestCase):
         User.objects.create(open_id='abc')
         User.objects.create(open_id='a', student_id='2016013265')
 
-        # textMsgs => 用户一般可能输入(成功)
-        self.textMsgs = ['查票']
+        # 查票/查票2 亲~没有此活动哟~
+        # 查票1 返回 suc
+        self.textMsgs = ['查票', '查票 1', '查票 2']
+        self.sucName = 1
+        self.sucMsg = '查票 ' + str(self.sucName)
 
         # clickEvents => 用户一般可能点击事件
         self.clickEvents = [CustomWeChatView.event_keys['get_ticket']]
@@ -458,9 +429,11 @@ class TestCheckTicket(TestCase):
         return content.find(pattern) != -1
 
     # 有票绑定用户
+
+    # 输入查票查到了
     def is_bind_and_tickets(self, content):
         pattern = re.compile(
-            r'<Title><!\[CDATA\[[\w\W\u4e00-\u9fff]{4}：(\d+)\n[\w\W\u4e00-\u9fff]{4}：(\d+)\n[\w\W\u4e00-\u9fff]{4}：(\d\d\d\d-\d\d-\d\d.*)-(\d\d\d\d-\d\d-\d\d.*)\]\]></Title>',
+            r'<Title><!\[CDATA\[您的活动：([\w\W\u4e00-\u9fff]*?)\]\]></Title>',
             re.M)
         data = pattern.finditer(content, re.M)
         if not data:
@@ -469,17 +442,15 @@ class TestCheckTicket(TestCase):
             name = str(dt.group(1))
             # 剩余数量会一直变，因此不需要
             # remain_tickets = str(dt.group(2))
-            start_time = str(dt.group(3))
-            end_time = str(dt.group(4))
             # 是否有这样的活动
-            act = Activity.objects.filter(name=name, start_time=start_time,
-                                          end_time=end_time, status=Activity.STATUS_PUBLISHED)
+            act = Activity.objects.filter(name=name, status=Activity.STATUS_PUBLISHED)
             if not act:
                 return False
         return True
 
+    # 没有票的人查票
     def is_bind_no_tickets(self, content):
-        pattern = '亲~您目前没有有效的订票哟~'
+        pattern = '亲~您没有此活动的票或此活动的不存在哟~'
         return content.find(pattern) != -1
 
     def test_text(self):
@@ -490,32 +461,28 @@ class TestCheckTicket(TestCase):
         createActivities(maxActivities)
 
         for user in users:
-            # flag 0-> 没买票
-            # flag 1-> 买了票
-            for flag in range(2):
-                for textMsg in self.textMsgs:
-                    fromUser = user.open_id
-                    curTime = str(getTimeStamp(datetime.datetime.now()))
-                    msgId = str(random.randint(0, 99999)) + curTime
-                    data = getTextXml(fromUser, curTime, textMsg, msgId)
+            if user.student_id:
+                self.book_ticket(user, self.sucName)
 
-                    response = self.client.post(
-                        path='/wechat/',
-                        content_type='application/xml',
-                        data=data
-                    )
+            for textMsg in self.textMsgs:
+                fromUser = user.open_id
+                curTime = str(getTimeStamp(datetime.datetime.now()))
+                msgId = str(random.randint(0, 99999)) + curTime
+                data = getTextXml(fromUser, curTime, textMsg, msgId)
 
-                    content = str(response.content.decode('utf-8'))
-                    if not user.student_id:
-                        self.assertEqual(self.is_unbind(content), True)
-                    elif not flag:
-                        # 没票
-                        self.assertEqual(self.is_bind_no_tickets(content), True)
-                        # 买票
-                        for act in Activity.objects.all():
-                            self.book_ticket(user, act.name)
-                    else:
-                        self.assertEqual(self.is_bind_and_tickets(content), True)
+                response = self.client.post(
+                    path='/wechat/',
+                    content_type='application/xml',
+                    data=data
+                )
+
+                content = str(response.content.decode('utf-8'))
+                if not user.student_id:
+                    self.assertEqual(self.is_unbind(content), True)
+                elif textMsg != self.sucMsg:
+                    self.assertEqual(self.is_bind_no_tickets(content), True)
+                else:
+                    self.assertEqual(self.is_bind_and_tickets(content), True)
 
     def test_event_click(self):
         users = User.objects.all()
@@ -544,7 +511,7 @@ class TestCheckTicket(TestCase):
                         self.assertEqual(self.is_unbind(content), True)
                     elif not flag:
                         # 没票
-                        self.assertEqual(self.is_bind_no_tickets(content), True)
+                        self.assertEqual(self.is_bind_no_tickets(content), True,)
                         # 买票
                         for act in Activity.objects.all():
                             self.book_ticket(user, act.name)

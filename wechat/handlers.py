@@ -88,7 +88,7 @@ class BookEmptyHandler(WeChatHandler):
 class BookWhatHandler(WeChatHandler):
 
     def check(self):
-        return self.is_text('抢啥') or self.is_event_click(self.view.event_keys['book_what'])
+        return self.is_event_click(self.view.event_keys['book_what'])
 
     def handle(self):
         # 按照结束事件顺序排列
@@ -112,7 +112,7 @@ class BookWhatHandler(WeChatHandler):
 class CheckTicketHandler(WeChatHandler):
 
     def check(self):
-        return self.is_text('查票') or self.is_event_click(self.view.event_keys['get_ticket'])
+        return self.is_text_in('查票') or self.is_event_click(self.view.event_keys['get_ticket'])
 
     def handle(self):
         # 判断是否有效
@@ -123,24 +123,47 @@ class CheckTicketHandler(WeChatHandler):
                 'Url': self.url_bind(),
             })
         else:
+            # flag 1-> 查票
+            flag = 0
+            activity = None
+            # 如果输入查票
+            if self.is_text_in('查票'):
+                # >>> 查票 XXXX
+                query = self.input['Content'][3:]
+                if not query:
+                    flag = 0
+                else:
+                    activity = Activity.objects.filter(name=query)
+                    if activity:
+                        flag = 1
+            # 点击抢票
+            elif self.is_event_click(self.view.event_keys['get_ticket']):
+                flag = 1
+
+            if flag == 0:
+                return self.reply_text('亲~您没有此活动的票或此活动的不存在哟~')
+
             # 查票
-            tickets = Ticket.objects.filter(student_id=self.user.student_id, status=Ticket.STATUS_VALID).select_related('activity')
-            # 没有票
-            if not tickets.exists():
-                return self.reply_text('亲~您目前没有有效的订票哟~')
+            # 查所有的票
+            if not activity:
+                tickets = Ticket.objects.filter(student_id=self.user.student_id, status=Ticket.STATUS_VALID).select_related('activity')
             else:
-                articles = []
-                for ticket in tickets.iterator():
-                    act = ticket.activity
-                    article = {}
-                    article['Title'] = '当前活动：' + act.name + '\n' \
-                                       + '剩余票数：' + str(act.remain_tickets) + '\n' \
-                                       + '抢票时间：' + str(act.start_time) + '-' + str(act.end_time)
-                    article['Description'] = act.description
-                    article['Url'] = self.url_book_what(act.id)
-                    article['PicUrl'] = act.pic_url
-                    articles.append(article)
-                return self.reply_news(articles)
+                tickets = Ticket.objects.filter(student_id=self.user.student_id, status=Ticket.STATUS_VALID, activity=activity).select_related('activity')
+
+            if not tickets.exists():
+                return self.reply_text('亲~您没有此活动的票或此活动的不存在哟~')
+
+            reses = []
+            for ticket in tickets.iterator():
+                act = ticket.activity
+                res = {}
+                res['Title'] = '您的活动：' + act.name
+                res['Description'] = '活动地点：' + act.place + '\n' \
+                                     + '活动开始时间：' + str(act.start_time.timestamp()) + '活动结束时间' + str(act.end_time.timestamp())
+                res['Url'] = self.url_book_ticket(ticket.unique_id)
+                res['PicUrl'] = act.pic_url
+                reses.append(res)
+            return self.reply_news(reses)
 
 
 # 抢票
@@ -156,7 +179,7 @@ class BookTicketHandler(WeChatHandler):
         return u
 
     def check(self):
-        return self.is_text('抢票') or self.is_event_book_click(self.view.event_keys['book_header'])
+        return self.is_text_in('抢票') or self.is_event_book_click(self.view.event_keys['book_header'])
 
     def handle(self):
         # 判断是否有效
@@ -176,7 +199,7 @@ class BookTicketHandler(WeChatHandler):
             text_flag_val = None
 
             # 如果输入抢票
-            if self.is_text('抢票'):
+            if self.is_text_in('抢票'):
                 # >>> 抢票 XXXX
                 query = self.input['Content'][3:]
                 text_flag_val = query
@@ -279,7 +302,7 @@ class RefundTicketHandler(WeChatHandler):
         return int(time.mktime(timeObj.timetuple()))
 
     def check(self):
-        return self.is_text('退票')
+        return self.is_text_in('退票')
 
     def handle(self):
         # 判断是否有效

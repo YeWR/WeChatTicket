@@ -23,7 +23,7 @@
     <form role="form" method="post" id="checkin-form" action="/api/a/activity/checkin">
         <div class="form-group col-xs-offset-2 col-xs-8">
             <input class="form-control input-lg" type="text" id="input-uid" name="ticket" placeholder="扫描二维码或输入学号"
-                   onblur="setTimeout(function(){$('#input-uid').focus();});" autocomplete="off" required maxlength="32">
+                   onblur="setTimeout(function(){$('#input-uid').focus();});" autocomplete="off" required maxlength="65">
         </div>
     </form>
     <div class="col-xs-offset-2 col-xs-8" id="tickets-table-holder">
