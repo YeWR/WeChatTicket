@@ -174,3 +174,9 @@ logging.basicConfig(
     format='%(levelname)-7s [%(asctime)s] %(module)s.%(funcName)s:%(lineno)d  %(message)s',
     level=logging.DEBUG if DEBUG else logging.WARNING,
 )
+
+OPTIONS = {
+
+"init_command": "SET foreign_key_checks = 0;",
+
+}

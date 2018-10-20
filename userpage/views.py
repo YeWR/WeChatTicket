@@ -39,13 +39,14 @@ class UserBind(APIView):
     def post(self):
         self.check_input('openid', 'student_id', 'password')
         with transaction.atomic():
-            user = User.objects.select_for_update().filter(open_id=self.input['openid']).first()
-        if user is None:
+            user = User.objects.select_for_update().filter(open_id=self.input['openid'])
+        if not user.exists():
             raise LogicError('User not found')
         self.validate_user()
         with transaction.atomic():
-            user.student_id = self.input['student_id']
-            user.save()
+            user.update(student_id = self.input['student_id'])
+            #user.student_id = self.input['student_id']
+            #user.save()
 
 class ActivityDetail(APIView):
 
@@ -86,7 +87,7 @@ class TicketDetail(APIView):
         if user.student_id is None:
             raise ValidateError("User not binded")
         with transaction.atomic():
-            ticket = Ticket.objects.select_for_update().filter(student_id=user.student_id, unique_id=self.input['ticket']).first()
+            ticket = Ticket.objects.select_for_update().filter(student_id=user.student_id, unique_id=self.input['ticket']).select_related('activity').first()
         if ticket is None:
             raise InputError('Ticket not found')
         return{
