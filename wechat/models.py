@@ -36,8 +36,8 @@ class Activity(models.Model):
 
 
 class Ticket(models.Model):
-    student_id = models.CharField(max_length=32, db_index=True)
-    unique_id = models.CharField(max_length=64, db_index=True, unique=True)
+    student_id = models.CharField(max_length=32, db_index=False)
+    unique_id = models.CharField(max_length=64, db_index=False, unique=True)
     activity = models.ForeignKey(Activity)
     status = models.IntegerField()
 
