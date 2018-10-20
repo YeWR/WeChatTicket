@@ -93,7 +93,7 @@ class TicketDetail(APIView):
                 'activityName': ticket.activity.name,
                 'place' : ticket.activity.place,
                 'activityKey': ticket.activity.key,
-                'uniqueID': ticket.unique_id,
+                'uniqueId': ticket.unique_id,
                 'startTime':int(ticket.activity.start_time.timestamp()),
                 'endTime':int(ticket.activity.end_time.timestamp()),
                 'currentTime':int(time.time()),

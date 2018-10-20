@@ -242,6 +242,7 @@ class BookTicketHandler(WeChatHandler):
             # 购买新票
             else:
                 # 加锁
+
                 with transaction.atomic():
                     if text_flag:
                         activity = Activity.objects.select_for_update().filter(name=text_flag_val).first()

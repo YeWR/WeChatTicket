@@ -154,7 +154,6 @@ class TestHelpOrSubscribe(TestCase):
                 content = str(response.content.decode('utf-8'))
                 self.assertEqual(self.is_help(content), True)
 
-    # TODO:self.is_event('scan', 'subscribe')什么意思
     def test_event(self):
         pass
 
@@ -297,7 +296,6 @@ class TestBindAccount(TestCase):
                     self.assertEqual(self.is_unbind(content), True)
 
 
-# TODO:这个函数干啥的？
 class TestBookEmpty(TestCase):
 
     def setUp(self):
