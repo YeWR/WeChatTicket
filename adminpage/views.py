@@ -266,8 +266,8 @@ class ActivityCheckin(APIView):
                     if item.student_id == key or item.unique_id == key:
                         if item.status == Ticket.STATUS_VALID:
                             with transaction.atomic():
+                                item = Ticket.objects.select_for_update().filter(unique_id=item.unique_id).first()
                                 if item.status == Ticket.STATUS_VALID:
-                                    item = Ticket.objects.select_for_update().filter(unique_id=item.unique_id).first()
                                     item.status = Ticket.STATUS_USED
                                     item.save()
                                 else:
