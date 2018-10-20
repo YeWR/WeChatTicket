@@ -225,6 +225,9 @@ class BookTicketHandler(WeChatHandler):
                     else:
                         activity = Activity.objects.select_for_update().filter(id=text_flag_val).first()
 
+                    if activity.remain_tickets <= 0:
+                        return self.reply_text('对不起，票已售空！')
+
                     yourTicket = Ticket.objects.select_for_update().filter(student_id=self.user.student_id,
                                                                            activity=activity).first()
                     yourTicket.status = Ticket.STATUS_VALID
@@ -248,6 +251,9 @@ class BookTicketHandler(WeChatHandler):
                         activity = Activity.objects.select_for_update().filter(name=text_flag_val).first()
                     else:
                         activity = Activity.objects.select_for_update().filter(id=text_flag_val).first()
+
+                    if activity.remain_tickets <= 0:
+                        return self.reply_text('对不起，票已售空！')
 
                     newTicket = Ticket.objects.select_for_update().create(
                         student_id=self.user.student_id,
