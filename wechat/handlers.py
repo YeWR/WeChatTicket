@@ -93,7 +93,7 @@ class BookWhatHandler(WeChatHandler):
     def handle(self):
         # 按照结束事件顺序排列
         activities = Activity.objects.filter(status=Activity.STATUS_PUBLISHED).order_by("end_time")
-        if not activities.exists():
+        if not activities:
             return self.reply_text(self.get_message('book_empty'))
         articles = []
         for act in activities.iterator():
@@ -150,7 +150,7 @@ class CheckTicketHandler(WeChatHandler):
             else:
                 tickets = Ticket.objects.filter(student_id=self.user.student_id, status=Ticket.STATUS_VALID, activity=activity).select_related('activity')
 
-            if not tickets.exists():
+            if not tickets:
                 return self.reply_text('亲~您没有此活动的票或此活动的不存在哟~')
 
             reses = []

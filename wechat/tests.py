@@ -90,7 +90,7 @@ class TestDefault(TestCase):
         # textMsgs => 用户一般可能输入(成功)
         self.textMsgs = ['balabala', 'gg', '抢火车票']
 
-    # 是否返回帮助
+    # 是否返回default
     def is_default(self, content):
         pattern = '对不起，没有找到您需要的信息:('
         return content.find(pattern) != -1
