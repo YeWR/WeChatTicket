@@ -136,7 +136,7 @@ class TicketDetailTest(TestCase):
         resp = c.get("/api/u/ticket/detail", {'openid': 'a', 'ticket': 10010})
         mess = json.loads(str(resp.content, encoding="utf-8"))
         self.assertEqual(mess['code'], 0)
-        self.assertEqual(mess['data']['uniqueID'], '10010')
+        self.assertEqual(mess['data']['uniqueId'], '10010')
 
     def testTicketDetail_noinput(self):
         User.objects.create(open_id='a', student_id='2016013224')
