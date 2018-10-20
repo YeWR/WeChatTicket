@@ -4,7 +4,7 @@ import datetime
 import time
 import uuid
 
-from django.db.models import Q
+from django.db.models import Q,F
 from django.db import transaction
 
 from wechat.models import Activity, Ticket
@@ -93,10 +93,10 @@ class BookWhatHandler(WeChatHandler):
     def handle(self):
         # 按照结束事件顺序排列
         activities = Activity.objects.filter(status=Activity.STATUS_PUBLISHED).order_by("end_time")
-        if not activities:
+        if not activities.exists():
             return self.reply_text(self.get_message('book_empty'))
         articles = []
-        for act in activities:
+        for act in activities.iterator():
             article = {}
             article['Title'] = '当前活动：' + act.name + '\n' \
                                + '剩余票数：' + str(act.remain_tickets) + '\n' \
@@ -124,13 +124,13 @@ class CheckTicketHandler(WeChatHandler):
             })
         else:
             # 查票
-            tickets = Ticket.objects.filter(student_id=self.user.student_id, status=Ticket.STATUS_VALID)
+            tickets = Ticket.objects.filter(student_id=self.user.student_id, status=Ticket.STATUS_VALID).select_related('activity')
             # 没有票
-            if not tickets:
+            if not tickets.exists():
                 return self.reply_text('亲~您目前没有有效的订票哟~')
             else:
                 articles = []
-                for ticket in tickets:
+                for ticket in tickets.iterator():
                     act = ticket.activity
                     article = {}
                     article['Title'] = '当前活动：' + act.name + '\n' \
@@ -328,11 +328,11 @@ class RefundTicketHandler(WeChatHandler):
             with transaction.atomic():
                 activity = Activity.objects.select_for_update().filter(name=query).first()
                 yourTicket = Ticket.objects.select_for_update().filter(student_id=self.user.student_id,
-                                                                       activity=activity).first()
+                                                                       activity=activity).update(status=Ticket.STATUS_CANCELLED)
 
                 # 退票成功
-                yourTicket.status = Ticket.STATUS_CANCELLED
-                yourTicket.save()
+                #yourTicket.status = Ticket.STATUS_CANCELLED
+                #yourTicket.save()
 
                 # 票数增加
                 activity.remain_tickets += 1
